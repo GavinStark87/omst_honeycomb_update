@@ -1,14 +1,14 @@
 {
-  "name": "honeycomb",
-  "description": "All-in-one task starter app with jsPsych + React + Electron + psiturk ",
+  "name": "omst_honeycomb_update",
+  "description": "Updated version of the oMST task using Honeycomb.",
   "author": {
-    "name": "Brown CCV",
-    "email": "ccv-bot@brown.edu",
-    "url": "https://ccv.brown.edu"
+    "name": "Stark Lab",
+    "email": "starklab@uci.edu",
+    "url": "https://faculty.sites.uci.edu/starklab/"
   },
-  "honeycombVersion": "",
-  "version": "3.4.1",
-  "repository": "https://github.com/brown-ccv/honeycomb",
+  "honeycombVersion": "3.4.1",
+  "version": "1.0.0",
+  "repository": "https://github.com/GavinStark87/omst_honeycomb_update",
   "license": "MIT",
   "private": true,
   "main": "public/electron/main.js",
