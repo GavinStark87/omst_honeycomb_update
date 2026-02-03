@@ -10,7 +10,7 @@
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function tag(tag, children, attributes = {}) {
+function tag(tag, children, attributes = {}) {
   let attributesString;
   if (Object.keys(attributes).length === 0) {
     // No attributes
@@ -32,14 +32,14 @@ export function tag(tag, children, attributes = {}) {
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function b(children, attributes = {}) {
+function b(children, attributes = {}) {
   return tag("b", children, attributes);
 }
 
 /**
  * Returns a break tag
  */
-export function br() {
+function br() {
   return "<br />";
 }
 
@@ -49,7 +49,7 @@ export function br() {
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function div(children, attributes = {}) {
+function div(children, attributes = {}) {
   return tag("div", children, attributes);
 }
 
@@ -59,7 +59,7 @@ export function div(children, attributes = {}) {
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function h1(children, attributes = {}) {
+function h1(children, attributes = {}) {
   return tag("h1", children, attributes);
 }
 
@@ -69,7 +69,7 @@ export function h1(children, attributes = {}) {
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function i(children, attributes = {}) {
+function i(children, attributes = {}) {
   return tag("i", children, attributes);
 }
 
@@ -78,7 +78,7 @@ export function i(children, attributes = {}) {
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function image(attributes = {}) {
+function image(attributes = {}) {
   return tag("img", "", attributes);
 }
 
@@ -88,7 +88,7 @@ export function image(attributes = {}) {
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function p(children, attributes = {}) {
+function p(children, attributes = {}) {
   return tag("p", children, attributes);
 }
 
@@ -98,6 +98,8 @@ export function p(children, attributes = {}) {
  * @param {object} attributes HTML attributes to add to the tag
  * @returns {string} A string containing static HTML
  */
-export function span(children, attributes = {}) {
+function span(children, attributes = {}) {
   return tag("span", children, attributes);
 }
+
+export { b, br, div, h1, i, image, p, span, tag };

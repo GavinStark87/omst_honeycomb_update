@@ -273,7 +273,7 @@ function getProlificId() {
  * @param {Object} audioCodes The type/frequency of the beep
  */
 function beep(audioCodes) {
-  const context = new AudioContext();  
+  const context = new AudioContext(); // eslint-disable-line no-undef
   const o = context.createOscillator();
   const g = context.createGain();
   o.type = audioCodes.type;
@@ -294,6 +294,402 @@ function beep(audioCodes) {
  */
 function interleave(arr, val, addBefore = true) {
   return [].concat(...arr.map((n) => (addBefore ? [val, n] : [n, val])));
+}
+
+//----------- BUTTON PRESS HANDLING -------------
+let activeBtn = null;
+let lastTouchTime = 0;
+const hasHover = window.matchMedia('(hover: hover)').matches;
+
+function handlePress(e) {
+    // First try to find wrapper from the target
+    let wrapper = e.target.closest('.image-btn-wrapper');
+    
+    // If not found, check if we clicked the jsPsych button container
+    if (!wrapper) {
+        const jsPsychBtn = e.target.closest('.jspsych-canvas-button-response-button');
+        if (jsPsychBtn) {
+            wrapper = jsPsychBtn.querySelector('.image-btn-wrapper');
+        }
+    }
+    
+    if (!wrapper) return;
+
+    const btn = wrapper.querySelector('.image-btn');
+    const btnId = btn.id || btn.src.split('/').pop();
+
+    // Track touch usage
+    if (e.type === 'touchstart') {
+        lastTouchTime = Date.now();
+    }
+    
+    // Block ghost mouse events on touch devices
+    if (e.type === 'mouseover') {
+        const timeSinceTouch = Date.now() - lastTouchTime;
+        
+        if (timeSinceTouch < 500) {
+            return;
+        }
+        if (!hasHover) {
+            return;
+        }
+    }
+
+    if (activeBtn === btn) {
+        return;
+    }
+    
+    const origSrc = btn.dataset.orig || btn.src;
+    const pressedSrc = btn.dataset.pressed || origSrc.replace('.png', '_pressed.png');
+
+    btn.dataset.orig = origSrc;
+    btn.dataset.pressed = pressedSrc;
+
+    btn.src = pressedSrc;
+    wrapper.classList.add('pressed');
+
+    activeBtn = btn;
+}
+
+function handleRelease(e) {  
+    if (!activeBtn) return;
+    
+    const btnId = activeBtn.id || activeBtn.src.split('/').pop();
+    
+    if (e && e.type === 'touchend') {
+        lastTouchTime = Date.now();
+    }
+    
+    // Block ghost mouse events
+    if (e && e.type.startsWith('mouse')) {
+        const timeSinceTouch = Date.now() - lastTouchTime;
+        if (timeSinceTouch < 500) {
+            return;
+        }
+    }
+    
+    const wrapper = activeBtn.closest('.image-btn-wrapper');
+    if (wrapper) {
+        activeBtn.src = activeBtn.dataset.orig;
+        wrapper.classList.remove('pressed');
+    }
+
+    activeBtn = null;
+}
+
+function forceReleaseAll(e) {
+    const eventType = e ? e.type : 'UNKNOWN';
+    
+    if (activeBtn) {
+        const btnId = activeBtn.id || activeBtn.src.split('/').pop();
+        const wrapper = activeBtn.closest('.image-btn-wrapper');
+        if (wrapper) {
+            activeBtn.src = activeBtn.dataset.orig;
+            wrapper.classList.remove('pressed');
+        }
+        activeBtn = null;
+    }
+}
+
+function setupButtonListeners() {
+    
+    // Touch events
+    document.addEventListener('touchstart', handlePress, { passive: true });
+    document.addEventListener('touchend', handleRelease, { passive: true });
+    document.addEventListener('touchcancel', forceReleaseAll, { passive: true });
+    
+    // Mouse hover
+    document.addEventListener('mouseover', handlePress, true);
+    document.addEventListener('mouseleave', handleRelease, true);
+    document.addEventListener('mouseout', handleRelease, true);
+    
+    // Navigation cleanup
+    window.addEventListener('pagehide', (e) => {
+        forceReleaseAll(e);
+    });
+    
+    window.addEventListener('beforeunload', (e) => {
+        forceReleaseAll(e);
+    });
+    
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) forceReleaseAll();
+    });
+    
+}
+
+function cleanupButtonListeners() {
+    
+    document.removeEventListener('mouseover', handlePress, true);
+    document.removeEventListener('mouseleave', handleRelease, true);
+    document.removeEventListener('mouseout', handleRelease, true);
+    document.removeEventListener('touchstart', handlePress);
+    document.removeEventListener('touchend', handleRelease);
+    document.removeEventListener('touchcancel', forceReleaseAll);
+    window.removeEventListener('pagehide', forceReleaseAll);
+    window.removeEventListener('beforeunload', forceReleaseAll);
+    
+    forceReleaseAll();
+}
+
+//-----------------------DEVICES----------------------
+function getDeviceType() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const isPortrait = height > width;
+  
+  // Calculate aspect ratio (always longer side / shorter side)
+  const aspectRatio = Math.max(width, height) / Math.min(width, height);
+  
+  const screenSize = Math.max(width, height);
+  const mobile = [true, false, false];
+  const tablet = [false, true, false];
+  const laptop = [false, false, true];
+  const desktop = [false, false, false];
+  
+  console.log("width: " + width);
+  console.log("height: " + height);
+  console.log("aspect ratio: " + aspectRatio.toFixed(2));
+  
+
+  if (screenSize >= 1920) {
+    if (isPortrait && aspectRatio >= 1.3 && aspectRatio <= 1.675) {
+      console.log("tablet (large)");
+      return tablet;
+    } else if (isPortrait) {
+      console.log("phone (large)");
+      return mobile;
+    }
+    console.log("desktop");
+    return desktop;
+  }
+  
+  // Laptop range (typically 13-15 inch displays)
+  if (screenSize >= 1366 && screenSize < 1920) {
+    // Large tablets in portrait can reach this size, use aspect ratio
+    if (isPortrait && aspectRatio >= 1.3 && aspectRatio <= 1.6) {
+      console.log("tablet (large)");
+      return tablet;
+    } else if (isPortrait) {
+      console.log("phone (large)");
+      return mobile;
+    }
+    console.log("laptop");
+    return laptop;
+  }
+  
+  // Medium screens (tablets vs small laptops)
+  if (screenSize >= 1024 && screenSize < 1366) {
+    if (isPortrait && aspectRatio >= 1.3 && aspectRatio <= 1.6) {
+      console.log("tablet");
+      return tablet;
+    } else if (isPortrait) {
+      console.log("phone (large)");
+      return mobile;
+    } else {
+      console.log("laptop");
+      return laptop;
+    }
+  }
+  
+  // Small to medium screens - THIS IS THE KEY RANGE
+  // Use aspect ratio to distinguish phones from tablets
+  if (screenSize >= 768 && screenSize < 1024) {
+    // Phones have more elongated screens (taller/narrower)
+    // aspectRatio >= 1.7 suggests a phone
+    if (aspectRatio >= 1.7) {
+      console.log("mobile");
+      return mobile;
+    } else {
+      console.log("tablet (small)");
+      return tablet;
+    }
+  }
+  
+  // Smaller screens - but check aspect ratio still
+  if (screenSize < 768) {
+    // Small tablets might be here with squarer aspect ratios
+    if (aspectRatio < 1.5 && screenSize >= 600) {
+      console.log("tablet (very small)");
+      return tablet;
+    }
+    console.log("mobile");
+    return mobile;
+  }
+  
+  // Fallback
+  console.log("desktop");
+  return desktop;
+}
+
+//----------------------- TEXT ----------------------
+async function drawHTMLText(ctx, html, x, y, fontSize, device, classicGraphics=false) {    
+    const isMobile = device[0];
+    const isTablet = device[1];
+    const smallScreen = device[2];
+    const parts = html.split(/(<[^>]+>)/).filter(p => p.trim() !== '');
+    let fontStyle = '';
+    const letterSpacing = fontSize * 0.08 // change multiplier to change kerning
+    const italicCorrection = classicGraphics ? fontSize * 0.08 : fontSize * 0.12; // Extra spacing after italic-to-roman transition
+    const maxWidth = 1.5 * x;
+    
+    // Classic vs Modern styling
+    const fontFamily = classicGraphics ? `"Open Sans", "Arial", sans-serif` : `"Comic Relief"`;
+    const useOutline = !classicGraphics;
+
+    if (!classicGraphics && 'fonts' in document) {
+      try {
+        await document.fonts.load(`bold ${fontSize}px "Comic Relief"`);
+        await document.fonts.load(`italic bold ${fontSize}px "Comic Relief"`);
+        console.log("✓ Comic Relief font loaded for canvas");
+      } catch (error) {
+        console.warn("⚠ Failed to load Comic Relief font:", error);
+      }
+    }
+
+    console.log("fontFamily: " + fontFamily);
+
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // Split into words, keeping HTML tags
+    let words = [];
+    for (let part of parts) {
+      if (part.startsWith('<')) {
+        words.push(part);
+      } else {
+        part.split(' ').forEach((word, i, arr) => {
+          words.push(word + (i < arr.length - 1 ? ' ' : ''));
+        });
+      }
+    }
+
+    let lines = [];
+    let currentLine = [];
+    let currentLineWidth = 0;
+    for (let word of words) {
+      if (word === '<p>') { fontStyle = ''; continue; }
+      if (word === '</p>') { fontStyle = ''; continue; }
+      if (word === '<i>') { fontStyle = 'italic '; continue; }
+      if (word === '</i>') { fontStyle = ''; continue; }
+      if (word === '<b>') { fontStyle = 'bold '; continue; }
+      if (word === '</b>') { fontStyle = ''; continue; }
+
+      ctx.font = `${fontStyle}bold ${fontSize}px ${fontFamily}`;
+      const wordWidth = ctx.measureText(word).width;
+
+      const wordObj = { text: word, font: ctx.font, width: wordWidth, isItalic: fontStyle.includes('italic') };
+      if (currentLineWidth + wordWidth > maxWidth) {
+        if (currentLine[0]){
+          if (currentLine[currentLine.length-1].text == '') {
+            currentLine.pop();
+          }
+        }
+        // Trim trailing space
+        if (currentLine.length && currentLine[currentLine.length - 1].text.endsWith(' ')) {
+          currentLine[currentLine.length - 1].text =
+            currentLine[currentLine.length - 1].text.trimEnd();
+          currentLine[currentLine.length - 1].width =
+            ctx.measureText(currentLine[currentLine.length - 1].text).width;
+        }
+
+        lines.push(currentLine);
+       
+        // Start new line
+        const trimmedWord = word.trimStart();
+        currentLine = trimmedWord ? [{ text: trimmedWord, font: ctx.font, width: ctx.measureText(trimmedWord).width, isItalic: fontStyle.includes('italic') }] : [];
+        currentLineWidth = trimmedWord ? ctx.measureText(trimmedWord).width : 0;
+        
+      } else {
+        currentLine.push(wordObj);
+        
+        currentLineWidth += wordWidth;
+      }
+      
+    }
+    if (currentLine.length) lines.push(currentLine);
+
+    // Draw each line with kerning
+    const lineHeight = fontSize * 1.2;
+    const startY = y;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      const lineCharCount = line.reduce((sum, w) => sum + w.text.length, 0);
+      const lineWidth = line.reduce((sum, w) => sum + w.width, 0) + letterSpacing * lineCharCount;
+      let startX = x - lineWidth / 2;
+
+      for (let wordIdx = 0; wordIdx < line.length; wordIdx++) {
+        let word = line[wordIdx];
+        ctx.font = word.font;
+
+        // Determine word color
+        let fillColor = classicGraphics ? 'black' : '#fff8d6';
+        
+        if (!classicGraphics) {
+          if (word.text.includes('Old') || word.text.includes('Viejo') || word.text.includes('旧') || word.text.includes('이전') || word.text.includes('Oud') || word.text.includes('Старое')) fillColor = '#f9b8d0';
+          else if (word.text.includes('Similar') || word.text.includes('相近') || word.text.includes('비슷한') || word.text.includes('Gelijkaardig') || word.text.includes('Похожее')) fillColor = '#d3f5a6';
+          else if (word.text.includes('New') || word.text.includes('Nuevo') || word.text.includes('新') || word.text.includes('새로운') || word.text.includes('Nieuw') || word.text.includes('Новое')) fillColor = '#b4d8ff';
+        }
+
+        ctx.fillStyle = fillColor;
+        
+        if (useOutline) {
+          ctx.lineWidth = isMobile ? 15 : smallScreen ? 8 : 12;
+          ctx.strokeStyle = '#5d2b12';
+        }
+
+        // Draw word character by character with spacing
+        let charX = startX;
+        for (let charIdx = 0; charIdx < word.text.length; charIdx++) {
+          let char = word.text[charIdx];
+          if (useOutline) {
+            ctx.strokeText(char, charX, startY + i * lineHeight);
+          }
+          ctx.fillText(char, charX, startY + i * lineHeight);
+          charX += ctx.measureText(char).width + letterSpacing;
+          
+          // Add italic correction if transitioning from italic to non-italic
+          const isLastCharInWord = charIdx === word.text.length - 1;
+          const nextWord = line[wordIdx + 1];
+          if (word.isItalic && isLastCharInWord && nextWord && !nextWord.isItalic) {
+            charX += italicCorrection;
+          }
+        }
+
+        startX += word.width + letterSpacing * word.text.length;
+        
+        // Add correction to startX as well for proper alignment
+        const nextWord = line[wordIdx + 1];
+        if (word.isItalic && nextWord && !nextWord.isItalic) {
+          startX += italicCorrection;
+        }
+      }
+    }
+
+    const textEndY = startY + (lines.length * lineHeight);
+    return {
+      startY: startY - lineHeight / 2,  // Account for middle baseline
+      endY: textEndY + lineHeight / 2,
+      lineHeight: lineHeight,
+      numLines: lines.length
+    };
+  }
+
+//----------------------- STYLING ----------------------
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
 }
 
 export {
@@ -317,4 +713,9 @@ export {
   set6Images,
   getFormattedDate,
   invNormcdf,
+  setupButtonListeners,
+  cleanupButtonListeners,
+  getDeviceType,
+  drawHTMLText, 
+  roundRect,
 };
