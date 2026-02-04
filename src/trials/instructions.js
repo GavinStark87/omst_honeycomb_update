@@ -41,14 +41,18 @@
 // importing jspysch plugins
 import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
 import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
+import jsPsychCanvasButtonResponse from "@jspsych/plugin-canvas-button-response";
+import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-response";
 import jsPsychCategorizeImage from "@jspsych/plugin-categorize-image";
 
 // importing unique plugins
 import { jsPsychCategorizeImageButtons } from "./uniquePlugins/plugin-categorize-image-buttons.js";
 
 // importing languages, images object, and response-mode
-import { images } from "../lib/utils.js";
+import { images, setupButtonListeners, cleanupButtonListeners, getDeviceType, fitIntroOutroToScreen, roundRect, calculateSideBySideCanvasSize } from "../lib/utils.js";
 import { lang, resp_mode } from "../App/components/Login";
+
+import './instructions.css';
 
 //----------------------- 2 ----------------------
 //----------------- HELPER METHODS ---------------
@@ -70,70 +74,70 @@ var instr_choice = function () {
 
 var prompt0 = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.prompt0 + "</p>";
+    return lang.instructions.button.prompt0;
   } else {
-    return "<p>" + lang.instructions.key.prompt0 + "</p>";
+    return lang.instructions.key.prompt0;
   }
 };
 
 var prompt_new = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.prompt_new + "</p>";
+    return lang.instructions.button.prompt_new;
   } else {
-    return "<p>" + lang.instructions.key.prompt_new + "</p>";
+    return lang.instructions.key.prompt_new;
   }
 };
 
 var inc_new = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.inc_new + "</p>";
+    return lang.instructions.button.inc_new;
   } else {
-    return "<p>" + lang.instructions.key.inc_new + "</p>";
+    return lang.instructions.key.inc_new;
   }
 };
 
 var cor_new = function () {
-  return "<p>" + lang.instructions.cor_new + "</p>";
+  return lang.instructions.cor_new;
 };
 
 var prompt_rep = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.prompt_rep + "</p>";
+    return lang.instructions.button.prompt_rep;
   } else {
-    return "<p>" + lang.instructions.key.prompt_rep + "</p>";
+    return lang.instructions.key.prompt_rep;
   }
 };
 
 var inc_rep = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.inc_rep + "</p>";
+    return lang.instructions.button.inc_rep;
   } else {
-    return "<p>" + lang.instructions.key.inc_rep + "</p>";
+    return lang.instructions.key.inc_rep;
   }
 };
 
 var cor_rep = function () {
-  return "<p>" + lang.instructions.cor_rep + "</p>";
+  return lang.instructions.cor_rep;
 };
 
 var prompt_lure = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.prompt_lure + "</p>";
+    return lang.instructions.button.prompt_lure;
   } else {
-    return "<p>" + lang.instructions.key.prompt_lure + "</p>";
+    return lang.instructions.key.prompt_lure;
   }
 };
 
 var inc_lure = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.inc_lure + "</p>";
+    return lang.instructions.button.inc_lure;
   } else {
-    return "<p>" + lang.instructions.key.inc_lure + "</p>";
+    return lang.instructions.key.inc_lure;
   }
 };
 
 var cor_lure = function () {
-  return "<p>" + lang.instructions.cor_lure + "</p>";
+  return lang.instructions.cor_lure;
 };
 
 var side_by_side1_stim = function () {
@@ -162,9 +166,9 @@ var side_by_side2_stim = function () {
 
 var side_by_side_prompt = function () {
   if (resp_mode == "button") {
-    return "<p>" + lang.instructions.button.continue + "</p>";
+    return lang.instructions.button.continue;
   } else {
-    return "<p>" + lang.instructions.key.continue + "</p>";
+    return lang.instructions.key.continue;
   }
 };
 
@@ -200,7 +204,459 @@ var trial_choices = function () {
   }
 };
 
+function fitTrialToScreen() {
+  const container = document.querySelector('.jspsych-content');
+  if (!container) return;
+    
+  const totalHeight = window.offsetHeight ? 
+    window.offsetHeight : window.innerHeight;
+  const totalWidth = window.visualViewport ? 
+    window.visualViewport.width : window.innerWidth;
+
+  
+  // Get the three main sections
+  const promptContainer = document.querySelector('.prompt-container');
+  const stimulusContainer = document.querySelector('.jspsych-categorize-image-buttons-stimulus');
+  const buttonContainer = document.querySelector('#jspsych-categorize-image-buttons-response-btngroup');
+  
+  if (!promptContainer || !stimulusContainer || !buttonContainer) return;
+  
+  console.log('Total height:', totalHeight);
+  console.log('Device type - isMobile:', isMobile, 'isTablet:', isTablet, 'smallScreen:', smallScreen, 'desktop:', !smallScreen && !isMobile && !isTablet);
+  
+  // MOBILE: Buttons stacked (2 top, 1 bottom), vertical layout
+  if (isMobile) {
+    const buttonHeight = buttonContainer.offsetHeight;
+    console.log('Button height:', buttonHeight);
+    
+    // Stimulus should be square at 90vw
+    const stimulusSize = totalWidth * 0.90;
+    console.log('Stimulus size:', stimulusSize);
+    
+    // Remaining space for prompt
+    const margin = 40;
+    const promptHeight = totalHeight - stimulusSize - buttonHeight - margin;
+    console.log('Prompt height:', promptHeight);
+      
+    // Ensure prompt has minimum viable space
+    if (promptHeight < 30) {
+      console.warn('Prompt space too small, adjusting layout');
+      const adjustedStimSize = totalHeight - buttonHeight - 60 - margin;
+      stimulusContainer.style.width = adjustedStimSize + 'px';
+      stimulusContainer.style.height = adjustedStimSize + 'px';
+      promptContainer.style.height = '60px';
+    } else {
+      stimulusContainer.style.width = stimulusSize + 'px';
+      stimulusContainer.style.height = stimulusSize + 'px';
+      stimulusContainer.style.maxWidth = stimulusSize + 'px';
+      stimulusContainer.style.maxHeight = stimulusSize + 'px';
+      promptContainer.style.height = promptHeight + 'px';
+    }
+  } 
+  // TABLET, LAPTOP, DESKTOP: Buttons in a row, horizontal layout
+  else {
+    const buttonHeight = buttonContainer.offsetHeight;
+    console.log('Button height (horizontal):', buttonHeight);
+    
+    // For horizontal layouts, buttons take less height but more width
+    // We want the image to be reasonable size, not blown out
+    
+    // Calculate available space for stimulus + prompt
+    const margin = 60; // More margin for desktop
+    const availableHeight = totalHeight - buttonHeight - margin;
+    
+    // Determine stimulus size based on device
+    let maxStimulusPercent;
+    if (smallScreen) {
+      maxStimulusPercent = 0.75;
+    } else if (isTablet) {
+      maxStimulusPercent = 0.80;
+    } else {
+      maxStimulusPercent = 0.70;
+    } 
+    console.log(availableHeight);
+    const stimulusAllocation = availableHeight * maxStimulusPercent;
+    const promptAllocation = availableHeight * (1 - maxStimulusPercent);
+    
+    console.log('Stimulus allocation:', stimulusAllocation);
+    console.log('Prompt allocation:', promptAllocation);
+    
+    // Size stimulus as square, but constrained by both height and reasonable width
+    let stimulusSize = Math.min(
+      stimulusAllocation,           // Don't exceed allocated height
+      totalWidth * 0.80,            // Don't exceed 80% of screen width
+      totalHeight * 0.70            // Don't exceed 70% of screen height
+    );
+    
+    console.log('Final stimulus size:', stimulusSize);
+    
+    stimulusContainer.style.width = stimulusSize + 'px';
+    stimulusContainer.style.height = stimulusSize + 'px';
+    stimulusContainer.style.maxWidth = stimulusSize + 'px';
+    stimulusContainer.style.maxHeight = stimulusSize + 'px';
+    stimulusContainer.style.margin = '40px auto'; // Center it
+    
+    // Prompt gets remaining space
+    const actualPromptHeight = totalHeight - stimulusSize - buttonHeight - margin;
+    promptContainer.style.height = actualPromptHeight + 'px';
+    console.log('Actual prompt height:', actualPromptHeight);
+  }
+    
+  // Style prompt container
+  promptContainer.style.display = 'flex';
+  promptContainer.style.alignItems = 'center';
+  promptContainer.style.justifyContent = 'center';
+  promptContainer.style.overflow = 'hidden';
+  promptContainer.style.padding = '10px 20px';
+  promptContainer.style.margin = '10 auto';
+  promptContainer.style.boxSizing = 'border-box';
+  
+  // Style stimulus to maintain square aspect ratio
+  const img = stimulusContainer.querySelector('img') || stimulusContainer;
+  if (img) {
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'contain';
+  }
+  
+  // FIT TEXT TO PROMPT CONTAINER
+  const promptText = promptContainer.querySelector('.prompt_text');
+  if (promptText && typeof fitTextToContainer === 'function') {
+    const promptHeight = promptContainer.offsetHeight;
+    
+    // Adjust font size ranges based on device
+    let minFontSize, maxFontSize;
+    if (isMobile) {
+      minFontSize = 36;
+      maxFontSize = 96;
+    } else if (isTablet) {
+      minFontSize = 40;
+      maxFontSize = 80;
+    } else if (smallScreen) {
+      minFontSize = 32;
+      maxFontSize = 64;
+    } else { // desktop
+      minFontSize = 32;
+      maxFontSize = 64;
+    }
+    
+    fitTextToContainer(promptText, promptHeight - 20, minFontSize, maxFontSize);
+    container.classList.add('ready');
+  }
+}
+
+function makeCategorizeTrial(jsPsych, imgPath, t_choices, keyAnswer, buttonAnswer, promptText, incText, corText) {
+  const trial_choices = [
+      `${lang.instructions.button.trial_choices.old}`,
+      `${lang.instructions.button.trial_choices.sim}`,
+      `${lang.instructions.button.trial_choices.new}`,
+    ];
+  console.log("choices:", trial_choices);
+
+  return {
+    type: jsPsychCategorizeImageButtons,
+    stimulus: imgPath,
+    key_answer: keyAnswer,
+    button_answer: buttonAnswer,
+    choices: trial_choices,
+    prompt: `
+      <div class="prompt-container">
+        <p class="prompt prompt_text ${lang}" style="font-weight: normal;">${promptText}</p>
+      </div>
+    `,
+    
+    // Set feedback to empty - we'll handle it ourselves
+    incorrect_text: '',
+    correct_text: '',
+    
+    force_correct_button_press: true,
+    button_html: classicGraphics ?
+    ['1', '2', '3'].map((txt, i) => `
+      <div class="image-btn-wrapper">
+        <input type="image" 
+              src="/assets/blank_button.png"
+              class="image-btn"
+              data-choice="${i}"
+              data-correct="${i === buttonAnswer}">
+        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <text x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>
+    `)
+    :
+    ['1', '2', '3'].map((txt, i) => `
+      <div class="image-btn-wrapper">
+        <input type="image" 
+              src="/assets/blank_${isMobile ? ['red','blue','green'][i] : ['red','green','blue'][i]}.png"
+              class="image-btn"
+              data-choice="${i}"
+              data-correct="${i === buttonAnswer}">
+        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <text class="text-stroke" x="50%" y="50%">%choice%</text>
+          <text class="text-fill" x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>
+    `),
+    
+    on_load: function() {
+      const jsPsychInstance = this.jsPsych || jsPsych;
+
+      requestAnimationFrame(() => {
+        fitTrialToScreen();
+      });
+
+      // Track state
+      let hasRespondedIncorrectly = false;
+      let isProcessingResponse = false;
+      const trialStartTime = performance.now();
+      
+      // Get all buttons and the container
+      const buttonContainer = document.querySelector('#jspsych-categorize-image-buttons-response-btngroup');
+      const buttons = document.querySelectorAll('.image-btn');
+      
+      // Custom feedback function that doesn't redraw
+      function showCustomFeedback(correct, text) {
+        const promptContainer = document.querySelector('.prompt-container');
+        if (!promptContainer) return;
+        
+        // FIX: Remove the newlines and indentation that cause whitespace
+        promptContainer.innerHTML = `<p class="prompt prompt_text ${lang}" style="font-weight: normal; color: ${correct ? 'green' : 'red'};">${text}</p>`;
+        
+        // FIT THE TEXT
+        requestAnimationFrame(() => {
+          const promptText = promptContainer.querySelector('.prompt_text');
+          if (promptText && typeof fitTextToContainer === 'function') {
+            const containerHeight = promptContainer.offsetHeight;
+            let minFontSize, maxFontSize;
+            if (isMobile) {
+              minFontSize = 36;
+              maxFontSize = 96;
+            } else if (isTablet) {
+              minFontSize = 40;
+              maxFontSize = 80;
+            } else if (smallScreen) {
+              minFontSize = 32;
+              maxFontSize = 64;
+            } else { // desktop
+              minFontSize = 32;
+              maxFontSize = 64;
+            }
+            fitTextToContainer(promptText, containerHeight - 20, minFontSize, maxFontSize);
+          }
+        });
+      }
+
+      // Clone buttons to strip their event listeners
+      buttons.forEach((btn) => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+      });
+      
+      // Add handlers to the clean buttons
+      const cleanButtons = document.querySelectorAll('.image-btn');
+      
+      cleanButtons.forEach((btn) => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          
+          // Prevent multiple simultaneous clicks
+          if (isProcessingResponse) {
+            return false;
+          }
+          
+          const isCorrect = btn.dataset.correct === 'true';
+          const choiceIndex = parseInt(btn.dataset.choice);
+          
+          // CASE 1: First click is incorrect
+          if (!hasRespondedIncorrectly && !isCorrect) {
+            isProcessingResponse = true;
+            hasRespondedIncorrectly = true;
+            
+            // Show incorrect feedback with proper sizing
+            showCustomFeedback(false, incText);
+            
+            // Allow clicks again after feedback is shown
+            setTimeout(() => {
+              isProcessingResponse = false;
+            }, 100);
+            
+            return false;
+          }
+          
+          // CASE 2: Already responded incorrectly, clicking another incorrect button
+          if (hasRespondedIncorrectly && !isCorrect) {
+            return false;
+          }
+          
+          // CASE 3: Clicking correct button (either first try or after incorrect)
+          if (isCorrect) {
+            isProcessingResponse = true;
+            
+            // Show correct feedback
+            showCustomFeedback(true, corText);
+            
+            // Wait a moment, then end trial
+            setTimeout(() => {
+              // Clean up event listeners
+              cleanupButtonListeners();
+              
+              // Finish trial with jsPsych
+              const rt = performance.now() - trialStartTime;
+              jsPsych.finishTrial({
+                stimulus: imgPath,
+                response: choiceIndex,
+                correct: !hasRespondedIncorrectly, // Only correct if they got it on first try
+                rt: rt,
+                button_answer: buttonAnswer,
+                got_it_wrong_first: hasRespondedIncorrectly
+              });
+            }, 1500); // Show correct feedback for 1.5 seconds
+            
+            return false;
+          }
+          
+        }, true); // Use capture phase
+      });
+      
+      // Prevent jsPsych from interfering
+      // Override innerHTML setter on the display element to block redraws
+      const displayElement = document.querySelector('.jspsych-content');
+      const originalInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+      
+      Object.defineProperty(displayElement, 'innerHTML', {
+        set: function(value) {
+          // Block any attempts to redraw after initial load
+          console.log('🛑 Blocked jsPsych redraw attempt');
+          return;
+        },
+        get: function() {
+          return originalInnerHTMLDescriptor.get.call(this);
+        },
+        configurable: true
+      });
+
+      setupButtonListeners();
+    },
+
+    on_finish: function(data) {
+      // Restore innerHTML setter
+      const displayElement = document.querySelector('.jspsych-content');
+      if (displayElement) {
+        delete displayElement.innerHTML;
+      }
+
+        cleanupButtonListeners();
+    },
+  };
+}
+
+function makeSideBySideTrial(imgLeft, imgRight, promptText, buttonLabel) {
+  return {
+    type: (resp_mode == 'button' ? jsPsychCanvasButtonResponse : jsPsychCanvasKeyboardResponse),
+    choices: [buttonLabel],
+    canvas_size: calculateSideBySideCanvasSize(isMobile, isTablet, smallScreen), // Calculate based on horizontal allocation
+    stimulus: function(c) {
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = classicGraphics ? 'white' : '#fff9e0';
+      const gap = 60; // spacing between the two images
+      const framePadding = 20;
+      const radius = 25;
+      const width = c.width;
+      const height = c.height;
+      ctx.fillRect(0, 0, width, height);
+
+      const imgL = new Image();
+      const imgR = new Image();
+
+      imgL.onload = imgR.onload = function() {
+        // Calculate image size to fit within canvas
+        // Two images side by side with a gap
+        const availableWidth = (width - gap - framePadding * 4) / 2;
+        const availableHeight = height - framePadding * 2;
+        
+        // Use the smaller dimension to ensure images fit
+        const imgSize = Math.min(availableWidth, availableHeight);
+        
+        const imgWidth = imgSize;
+        const imgHeight = imgSize;
+        const totalWidth = imgWidth * 2 + gap;
+        const x = (width - totalWidth) / 2;
+        const y = (height - imgHeight) / 2;
+
+        // draw function for each image
+        function drawFramedImage(img, xPos) {
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#5d2514';
+          ctx.lineWidth = 15;
+          if (!classicGraphics) {roundRect(ctx, xPos - framePadding, y - framePadding,
+                  imgWidth + 2 * framePadding, imgHeight + 2 * framePadding, radius);}
+          ctx.fill();
+          ctx.stroke();
+          ctx.drawImage(img, xPos, y, imgWidth, imgHeight);
+        }
+        drawFramedImage(imgL, x);
+        drawFramedImage(imgR, x + imgWidth + gap);
+      };
+
+      imgL.src = imgLeft;
+      imgR.src = imgRight;
+    },
+    prompt: `<p class="prompt_text" style="margin: 0;">${promptText}</p>`,
+    button_html: classicGraphics ?
+      `<div class="image-btn-wrapper">
+        <input type="image" src="/assets/blank_button.png"
+              class="image-btn">
+        <svg class="image-btn-text" viewBox="0 0 266 160">
+          <text x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`
+      :
+      `<div class="image-btn-wrapper">
+        <input type="image" src="/assets/blank_green.png"
+              class="image-btn">
+        <svg class="image-btn-text" viewBox="0 0 266 160">
+          <text class="text-stroke" x="50%" y="50%">%choice%</text>
+          <text class="text-fill" x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`,
+    on_load: function() {
+      requestAnimationFrame(() => {
+        fitSideBySideToScreen(isMobile, isTablet, smallScreen);
+      });
+
+      setupButtonListeners();
+    },
+
+    on_finish: function() {
+      cleanupButtonListeners();
+    },
+  };
+}
+
 //----------------------- 3 ----------------------
+//----------------- CONSTANTS -------------------
+
+const device = getDeviceType();
+console.log("have device " + device);
+const isMobile = device[0];
+const isTablet = device[1];
+const smallScreen = device[2];
+console.log("smallScreen " + smallScreen);
+const canvasWidth = isMobile ? stars_12 ? window.innerWidth * 1 : window.innerWidth * .9 
+                    : isTablet ? stars_12 ? window.innerWidth * 1 : window.innerWidth * .9
+                    : window.innerWidth * .9;
+const canvasHeight = isMobile ? window.innerHeight * 0.65 
+                    : smallScreen ? window.innerHeight * 0.75 
+                    : isTablet ? window.innerHeight * 0.8 
+                    : window.innerHeight * .70;
+const fontScale = isMobile ? 1.5 : 1.0;
+const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;
+const classicGraphics = false; // for now
+const stars_12 = true; // for now
+
+//----------------------- 4 ----------------------
 //-------------------- TRIALS --------------------
 // All the instructions trials.
 // These trials call the functions housing the parameter information.
@@ -222,20 +678,69 @@ var outtro = {};
 
 // function to refresh trials, called when Login options are set
 
-function refresh_instr_trials() {
+function refresh_instr_trials(jsPsych) {
   console.log("...refreshing instr trials");
 
   intro = {
     type: resp_mode == "button" ? jsPsychHtmlButtonResponse : jsPsychHtmlKeyboardResponse,
     choices: instr_choice,
-    prompt: prompt0,
+    prompt: `<p class="prompt_text">${prompt0()}</p>`,
     stimulus: function () {
-      return lang.instructions.txt0;
+      return `<p class="prompt_text intro ${lang}">` + lang.instructions.txt0 + '</p>';
     },
     data: { task: phasename },
+    button_html: classicGraphics ?
+      `<div class="image-btn-wrapper">
+        <input type="image" src="/assets/blank_button.png"
+              class="image-btn">
+        <svg class="image-btn-text" viewBox="0 0 266 160">
+          <text x="50%" y="50%">${instr_choice()}</text>
+        </svg>
+      </div>`
+    :
+      `<div class="image-btn-wrapper">
+        <input type="image" src="/assets/blank_green.png"
+              class="image-btn">
+        <svg class="image-btn-text" viewBox="0 0 266 160">
+          <text class="text-stroke" x="50%" y="50%">${instr_choice()}</text>
+          <text class="text-fill" x="50%" y="50%">${instr_choice()}</text>
+        </svg>
+      </div>`,
+    on_load: function() {
+      requestAnimationFrame(() => {
+        fitIntroOutroToScreen(isMobile, isTablet, smallScreen);
+      });
+
+      setupButtonListeners();
+    },
+
+    on_finish: function() {
+      cleanupButtonListeners();
+    },
   };
 
-  new1 = {
+  new1 = isMobile ?
+    makeCategorizeTrial(
+      images["foil_1032.jpg"],
+      prompts['key']['trial_choices']['new'],
+      1,
+      prompts[resp_mode]['prompt_new'],
+      prompts[resp_mode]['inc_new'],
+      prompts['cor_new']
+    ) 
+    :
+    makeCategorizeTrial(
+      jsPsych,
+      images["foil_1032.jpg"],
+      lang.instructions.key.trial_choices.new,
+      trial_choices(),
+      2,
+      prompt_new(),
+      inc_new(),
+      cor_new()
+    )
+
+  /*new1 = {
     type: resp_mode == "button" ? jsPsychCategorizeImageButtons : jsPsychCategorizeImage,
     stimulus: images["foil_1032.jpg"],
     key_answer: function () {
@@ -248,67 +753,58 @@ function refresh_instr_trials() {
     incorrect_text: inc_new,
     correct_text: cor_new,
     data: { task: phasename },
-  };
+  };*/
 
-  new2 = {
-    type: resp_mode == "button" ? jsPsychCategorizeImageButtons : jsPsychCategorizeImage,
-    stimulus: images["foil_1033.jpg"],
-    key_answer: function () {
-      return lang.instructions.key.trial_choices.new;
-    },
-    button_answer: 2,
-    choices: trial_choices,
-    prompt: prompt_new,
-    force_correct_button_press: true,
-    incorrect_text: inc_new,
-    correct_text: cor_new,
-    data: { task: phasename },
-  };
+  new2 = makeCategorizeTrial(
+    jsPsych,
+    images["foil_1033.jpg"],
+    lang.instructions.key.trial_choices.new,
+    trial_choices(),
+    2,
+    prompt_new(),
+    inc_new(),
+    cor_new()
+  );
 
-  new3 = {
-    type: resp_mode == "button" ? jsPsychCategorizeImageButtons : jsPsychCategorizeImage,
-    stimulus: images["pcon026a.jpg"],
-    key_answer: function () {
-      return lang.instructions.key.trial_choices.new;
-    },
-    button_answer: 2,
-    choices: trial_choices,
-    prompt: prompt_new,
-    force_correct_button_press: true,
-    incorrect_text: inc_new,
-    correct_text: cor_new,
-    data: { task: phasename },
-  };
+  new3 = makeCategorizeTrial(
+    jsPsych,
+    images["pcon026a.jpg"],
+    lang.instructions.key.trial_choices.new,
+    trial_choices(),
+    2,
+    prompt_new(),
+    inc_new(),
+    cor_new()
+  );
 
-  repeat1 = {
-    type: resp_mode == "button" ? jsPsychCategorizeImageButtons : jsPsychCategorizeImage,
-    stimulus: images["foil_1033.jpg"],
-    key_answer: function () {
-      return lang.instructions.key.trial_choices.old;
-    },
-    button_answer: 0,
-    choices: trial_choices,
-    prompt: prompt_rep,
-    force_correct_button_press: true,
-    incorrect_text: inc_rep,
-    correct_text: cor_rep,
-    data: { task: phasename },
-  };
+  repeat1 = makeCategorizeTrial(
+    jsPsych,
+    images["foil_1033.jpg"],
+    lang.instructions.key.trial_choices.old,
+    trial_choices(),
+    0,
+    prompt_rep(),
+    inc_rep(),
+    cor_rep()
+  ); 
 
-  lure1 = {
-    type: resp_mode == "button" ? jsPsychCategorizeImageButtons : jsPsychCategorizeImage,
-    stimulus: images["pcon026b.jpg"],
-    key_answer: function () {
-      return lang.instructions.key.trial_choices.sim;
-    },
-    button_answer: 1,
-    choices: trial_choices,
-    prompt: prompt_lure,
-    force_correct_button_press: true,
-    incorrect_text: inc_lure,
-    correct_text: cor_lure,
-    data: { task: phasename },
-  };
+  lure1 = makeCategorizeTrial(
+    jsPsych,
+    images["pcon026b.jpg"],
+    lang.instructions.key.trial_choices.sim,
+    trial_choices(),
+    1,
+    prompt_lure(),
+    inc_lure(),
+    cor_lure()
+  ); 
+
+  side_by_side1 = makeSideBySideTrial(
+    images["pcon026a.jpg"],
+    images["pcon026b.jpg"],
+    side_by_side_prompt(),
+    `<p class="prompt_text ${lang}">` + lang.instructions.side_by_side + '</p>'
+  );
 
   side_by_side1 = {
     type: resp_mode == "button" ? jsPsychHtmlButtonResponse : jsPsychHtmlKeyboardResponse,

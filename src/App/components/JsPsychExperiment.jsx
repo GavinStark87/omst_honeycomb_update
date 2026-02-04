@@ -123,13 +123,20 @@ function JsPsychExperiment({
     return () => {
       window.removeEventListener("keyup", handleKeyEvent, true);
       window.removeEventListener("keydown", handleKeyEvent, true);
-      try {
-        jsPsych.endExperiment("Ended Experiment");
-      } catch (e) {
-        console.error("Experiment closed before unmount");
+      // Only end if the experiment is still running
+      if (jsPsych && typeof jsPsych.endExperiment === 'function') {
+        try {
+          // Check if experiment is actually running before ending
+          if (jsPsych.data && jsPsych.data.get) {
+            jsPsych.endExperiment("Ended Experiment");
+          }
+        } catch (e) {
+          // Silently catch if already ended - this is expected behavior
+          console.log("Experiment already ended");
+        }
       }
     };
-  });
+  }, []); // Empty dependency array ensures this runs only on mount and unmount.
 
   return (
     <div className="App">
@@ -144,6 +151,11 @@ function JsPsychExperiment({
 JsPsychExperiment.propTypes = {
   participantId: PropTypes.string.isRequired,
   studyId: PropTypes.string.isRequired,
+  taskVersion: PropTypes.string.isRequired,
+  dataUpdateFunction: PropTypes.func.isRequired,
+  dataFinishFunction: PropTypes.func.isRequired,
+  height: PropTypes.string,
+  width: PropTypes.string,
 };
 
 //----------------------- 4 ----------------------

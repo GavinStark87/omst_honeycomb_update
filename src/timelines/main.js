@@ -89,6 +89,7 @@ import {
   lure2,
   side_by_side2,
   outtro,
+  refresh_instr_trials,
 } from "../trials/instructions";
 import { omst_preload, instr_trial, debrief_block, omst_feedback } from "../trials/contOmst";
 import testBlock from "./testBlock";
@@ -113,6 +114,8 @@ const jsPsychOptions = {
 //const buildPrimaryTimeline = () => {
 function buildTimeline(jsPsych, studyID, participantID) {
   console.log(`Building timeline for participant ${participantID} on study ${studyID}`);
+
+  refresh_instr_trials(jsPsych);
 
   const primaryTimeline = [];
 

@@ -491,7 +491,7 @@ export function buttonContTrial(config, options) {
   const defaults = {
     // set default trial parameters for button response
     responseType: jsPsychCanvasButtonResponse,
-    stimulusDuration: 2000,
+    STIMULUS_DURATION: 2000,
     trialDuration: selfpaced == 1 ? null : 2500,
     postTrialGap: 500,
     marginHorizontal: "8px",
@@ -505,7 +505,7 @@ export function buttonContTrial(config, options) {
     data: "", // iteration of the trial so their default is blank
   };
   const {
-    stimulusDuration,
+    STIMULUS_DURATION,
     trialDuration,
     postTrialGap,
     marginHorizontal,
@@ -582,31 +582,42 @@ export function buttonContTrial(config, options) {
         return textBounds;
       }
 
-      stimImg.onload = function() {
-        const textBounds = drawScene();
-        
+      stimImg.onload = async function() {
+        console.log("✅ Image loaded!");
+        console.log("naturalWidth:", stimImg.naturalWidth);
+        console.log("naturalHeight:", stimImg.naturalHeight);
+        console.log("width:", stimImg.width);
+        console.log("height:", stimImg.height);
+        console.log("complete:", stimImg.complete);
+        const textBounds = await drawScene();
+        console.log("textBounds:", textBounds);
+
         // *** CALCULATE AVAILABLE SPACE ***
         const topMargin = isTablet ? 30 : 15; // Space below text (reduced for desktop/laptop)
         const bottomMargin = 30; // Space above buttons
         const imageTopY = textBounds.endY + topMargin;
         const availableHeight = height - imageTopY - bottomMargin;
         const progress = num_correct;
-        
+        console.log("textBounds.endY:", textBounds.endY);
+        console.log("imageTopY:", imageTopY);
+        console.log("availableHeight:", availableHeight);
+
         // For tablet: leave space for stars on left and brain on right
         const leftReserved = isTablet && !classicGraphics ? starSize + 60 : 0;
         const rightReserved = isTablet && !classicGraphics ? (brain.width * brainScale) + 60 : 0;
         const availableWidth = isTablet && !classicGraphics ? width - leftReserved - rightReserved : isMobile ? width * 0.7 : width * 0.8; // Increased from 0.8 to 0.85
 
         // *** SCALE IMAGE TO FIT AVAILABLE SPACE ***
-        const imgAspectRatio = stimImg.width / stimImg.height;
+        const imgAspectRatio = stimImg.naturalWidth / stimImg.naturalHeight;
+        console.log("Image aspect ratio:", imgAspectRatio);
         let scaledWidth, scaledHeight;
 
         // Try fitting by height first
         scaledHeight = availableHeight - (2 * framePadding);
 
         scaledWidth = scaledHeight * imgAspectRatio;
-        //console.log("scaled height", scaledHeight);
-        //console.log("scaled width", scaledWidth);
+        console.log("scaled height", scaledHeight);
+        console.log("scaled width", scaledWidth);
 
         // If too wide, fit by width instead
         if (scaledWidth > availableWidth - (2 * framePadding)) {
@@ -619,6 +630,7 @@ export function buttonContTrial(config, options) {
         const y = imageTopY + (availableHeight - scaledHeight - 2 * framePadding) / 2;
         console.log("Image position x:", x, "y:", y);
         console.log("canvas height: ", canvasHeight)
+
         // Draw frame and image
         ctx.fillStyle = "#ffffff";
         ctx.strokeStyle = "#5d2514";
@@ -632,6 +644,34 @@ export function buttonContTrial(config, options) {
         // Store for setTimeout clear
         stimImg._renderInfo = { x, y, scaledWidth, scaledHeight };
         console.log("stimImg render info", stimImg._renderInfo);
+
+        // After stimulus duration, remove only the image + its frame
+        const startTime = performance.now();
+        function checkAndClear() {
+          if (performance.now() - startTime >= STIMULUS_DURATION) {
+            
+            const { x, y, scaledWidth, scaledHeight } = stimImg._renderInfo;
+            console.log("clearRect values:");
+            console.log("  x:", x, "minus padding/lineWidth:", x - framePadding - ctx.lineWidth);
+            console.log("  y:", y, "minus padding/lineWidth:", y - framePadding - ctx.lineWidth);
+            console.log("  width:", scaledWidth + 2 * framePadding + ctx.lineWidth * 2);
+            console.log("  height:", scaledHeight + 2 * framePadding + ctx.lineWidth * 2);
+            console.log("  framePadding:", framePadding);
+            console.log("  ctx.lineWidth:", ctx.lineWidth);
+            const ctx2 = c.getContext('2d');
+            ctx2.clearRect(
+              x - framePadding - ctx2.lineWidth,
+              y - framePadding - ctx2.lineWidth,
+              scaledWidth + 2 * framePadding + ctx2.lineWidth * 2,
+              scaledHeight + 2 * framePadding + ctx2.lineWidth * 2
+            );
+            console.log("Cleared rectangle");
+          } else {
+            requestAnimationFrame(checkAndClear);
+          }
+        }
+        requestAnimationFrame(checkAndClear);
+
         // Draw stars and brain
         const step = Math.floor((progress % (maxFill*(stars_12 ? 1 : 2)) + (stars_12 ? 0 : 1)) / (stars_12 ? 1 : 2)) || 0;
         const fullStars = Math.floor((progress/(stars_12 ? 1 : 2)) / maxFill);
@@ -739,29 +779,11 @@ export function buttonContTrial(config, options) {
         }
       };
       stimImg.src = stimPath;
+    
 
-      // After stimulus duration, remove only the image + its frame
-      const startTime = performance.now();
-      function checkAndClear() {
-        if (performance.now() - startTime >= stimulusDuration) {
-          if (stimImg._renderInfo) {
-            const { x, y, scaledWidth, scaledHeight } = stimImg._renderInfo;
-            const ctx2 = c.getContext('2d');
-            ctx2.clearRect(
-              x - framePadding - ctx2.lineWidth,
-              y - framePadding - ctx2.lineWidth,
-              scaledWidth + 2 * framePadding + ctx2.lineWidth * 2,
-              scaledHeight + 2 * framePadding + ctx2.lineWidth * 2
-            );
-          }
-        } else {
-          requestAnimationFrame(checkAndClear);
-        }
-      }
-      requestAnimationFrame(checkAndClear);
+      
     },
     choices: trialChoices,
-    stimulus_duration: stimulusDuration,
     trial_duration: trialDuration,
     post_trial_gap: postTrialGap,
     response_ends_trial: responseEndsTrial,

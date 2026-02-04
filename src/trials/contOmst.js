@@ -168,7 +168,9 @@ var instr_stim = function () {
   }
 };
 
+//----------------------- 3 ----------------------
 //--------------------CONSTANTS--------------------
+
 const device = getDeviceType();
 console.log("have device " + device);
 const isMobile = device[0];
@@ -185,8 +187,9 @@ const canvasHeight = isMobile ? window.innerHeight * 0.65
 const fontScale = isMobile ? 1.5 : 1.0;
 const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;
 const classicGraphics = false; // for now
+const stars_12 = true; // for now
 
-//----------------------- 3 ----------------------
+//----------------------- 4 ----------------------
 //--------------------- TRIALS -------------------
 
 //-------------instructions-------------
