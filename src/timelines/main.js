@@ -72,10 +72,10 @@ import {
   pcon_end,
 } from "../trials/pcon_demos";
 import { pconBlock1 } from "../config/pcon_config";
-import pconBlock from "./pconBlock";
 
 // contomst
 import {
+  preload,
   intro,
   new1,
   new2,
@@ -88,12 +88,13 @@ import {
   repeat2,
   lure2,
   side_by_side2,
-  outtro,
+  outro,
   refresh_instr_trials,
 } from "../trials/instructions";
 import { omst_preload, instr_trial, debrief_block, omst_feedback } from "../trials/contOmst";
-import testBlock from "./testBlock";
 import { end_message } from "../trials/end";
+import testBlock from "./testBlock";
+import pconBlock from "./pconBlock";
 
 //----------------------- 2 ----------------------
 //-------------------- OPTIONS -------------------
@@ -173,6 +174,7 @@ function buildTimeline(jsPsych, studyID, participantID) {
   // conditional timeline if instructions are included
   var incl_instr = {
     timeline: [
+      preload,
       intro,
       new1,
       new2,
@@ -185,7 +187,7 @@ function buildTimeline(jsPsych, studyID, participantID) {
       repeat2,
       lure2,
       side_by_side2,
-      outtro,
+      outro,
     ],
     conditional_function: function () {
       if (include_instr) {
