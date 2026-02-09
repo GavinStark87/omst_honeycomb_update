@@ -23,13 +23,27 @@
 //-------------------- IMPORTS -------------------
 import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
 import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
-import jsPsychImageKeyboardResponse from "@jspsych/plugin-image-keyboard-response";
-import jsPsychImageButtonResponse from "@jspsych/plugin-image-button-response";
+//import jsPsychImageKeyboardResponse from "@jspsych/plugin-image-keyboard-response";
+//import jsPsychImageButtonResponse from "@jspsych/plugin-image-button-response";
+import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-response";
+import jsPsychCanvasButtonResponse from "@jspsych/plugin-canvas-button-response";
 import jsPsychAnimation from "@jspsych/plugin-animation";
 import jsPsychPreload from "@jspsych/plugin-preload";
 
 import { lang, resp_mode } from "../App/components/Login";
-import { images, invNormcdf } from "../lib/utils";
+import {
+  images,
+  invNormcdf,
+  fitIntroOutroToScreen,
+  setupButtonListeners,
+  cleanupButtonListeners,
+  fitSideBySideToScreen,
+  roundRect,
+  calculateSideBySideCanvasSize,
+  getDeviceType,
+} from "../lib/utils";
+
+import "./css/pcon_demos.css";
 
 //----------------------- 2 ----------------------
 //----------------- HELPER METHODS ---------------
@@ -55,7 +69,7 @@ var instr_choice = function () {
 };
 
 var wait = function () {
-  return "<p>" + lang.pcon.wait;
+  return lang.pcon.wait;
 };
 
 var instr1_prompt = function () {
@@ -67,7 +81,7 @@ var instr1_prompt = function () {
 };
 
 var instr1_stim = function () {
-  return "<p>" + lang.pcon.instr1_stim + "</p>";
+  return lang.pcon.instr1_stim;
 };
 
 var instr2_prompt = function () {
@@ -78,36 +92,12 @@ var instr2_prompt = function () {
   }
 };
 
-var instr2_stim = function () {
-  return (
-    "<p>" +
-    lang.pcon.instr2_stim +
-    '</p> <table style = "width:100%"> <tr> <td> <img src = "' +
-    images["pprac1a.jpg"] +
-    '" height=400 width=400> </td> <td> <img src = "' +
-    images["pprac1a.jpg"] +
-    '" height=400 width=400></td></tr></table>'
-  );
-};
-
 var instr3_prompt = function () {
   if (resp_mode == "button") {
     return lang.pcon.button.instr3_prompt;
   } else {
     return lang.pcon.key.instr3_prompt;
   }
-};
-
-var instr3_stim = function () {
-  return (
-    "<p>" +
-    lang.pcon.instr3_stim +
-    '</p> <table style = "width:100%"> <tr> <td> <img src = "' +
-    images["pprac2a.jpg"] +
-    '" height=400 width=400> </td> <td> <img src = "' +
-    images["pprac2b.jpg"] +
-    '" height=400 width=400> </td> </tr> </table>'
-  );
 };
 
 var trial_choices = function () {
@@ -118,20 +108,136 @@ var trial_choices = function () {
   }
 };
 
-var trial_prompt = function () {
-  if (resp_mode == "button") {
-    return "<p>" + lang.pcon.button.trial_txt + "</p>";
-  } else {
-    return "<p>" + lang.pcon.key.trial_txt + "</p>";
-  }
-};
+function makeSideBySideTrial(imgLeft, imgRight, promptText, buttonLabel) {
+  return {
+    type: resp_mode == "button" ? jsPsychCanvasButtonResponse : jsPsychCanvasKeyboardResponse,
+    choices: [buttonLabel],
+    canvas_size: calculateSideBySideCanvasSize(isMobile, isTablet, smallScreen), // Calculate based on horizontal allocation
+    stimulus: function (c) {
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = classicGraphics ? "white" : "#fff9e0";
+      const gap = 60; // spacing between the two images
+      const framePadding = 20;
+      const radius = 25;
+      const width = c.width;
+      const height = c.height;
+      ctx.fillRect(0, 0, width, height);
+
+      const imgL = new Image();
+      const imgR = new Image();
+
+      imgL.onload = imgR.onload = function () {
+        // Calculate image size to fit within canvas
+        // Two images side by side with a gap
+        const availableWidth = (width - gap - framePadding * 4) / 2;
+        const availableHeight = height - framePadding * 2;
+
+        // Use the smaller dimension to ensure images fit
+        const imgSize = Math.min(availableWidth, availableHeight);
+
+        const imgWidth = imgSize;
+        const imgHeight = imgSize;
+        const totalWidth = imgWidth * 2 + gap;
+        const x = (width - totalWidth) / 2;
+        const y = (height - imgHeight) / 2;
+
+        // draw function for each image
+        function drawFramedImage(img, xPos) {
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#5d2514";
+          ctx.lineWidth = 15;
+          if (!classicGraphics) {
+            roundRect(
+              ctx,
+              xPos - framePadding,
+              y - framePadding,
+              imgWidth + 2 * framePadding,
+              imgHeight + 2 * framePadding,
+              radius
+            );
+          }
+          ctx.fill();
+          ctx.stroke();
+          ctx.drawImage(img, xPos, y, imgWidth, imgHeight);
+        }
+        drawFramedImage(imgL, x);
+        drawFramedImage(imgR, x + imgWidth + gap);
+      };
+
+      imgL.src = imgLeft;
+      imgR.src = imgRight;
+    },
+    prompt: `<p class="prompt_text" style="margin-bottom: 20;">${promptText}</p>`,
+    button_html: classicGraphics
+      ? `<div class="image-btn-wrapper">
+        <input type="image" src="/assets/blank_button.png"
+              class="image-btn">
+        <svg class="image-btn-text" viewBox="0 0 266 160">
+          <text x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`
+      : `<div class="image-btn-wrapper">
+        <input type="image" src="/assets/blank_green.png"
+              class="image-btn">
+        <svg class="image-btn-text" viewBox="0 0 266 160">
+          <text class="text-stroke" x="50%" y="50%">%choice%</text>
+          <text class="text-fill" x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`,
+    on_load: function () {
+      requestAnimationFrame(() => {
+        fitSideBySideToScreen(isMobile, isTablet, smallScreen);
+      });
+
+      setupButtonListeners();
+    },
+
+    on_finish: function () {
+      cleanupButtonListeners();
+    },
+  };
+}
 
 //----------------------- 3 ----------------------
+//--------------------- CONSTANTS -------------------
+const device = getDeviceType();
+console.log("have device " + device);
+const isMobile = device[0];
+const isTablet = device[1];
+const smallScreen = device[2];
+console.log("smallScreen " + smallScreen);
+const canvasWidth = isMobile
+  ? stars_12
+    ? window.innerWidth * 1
+    : window.innerWidth * 0.9
+  : isTablet
+    ? stars_12
+      ? window.innerWidth * 1
+      : window.innerWidth * 0.9
+    : window.innerWidth * 0.9;
+const canvasHeight = isMobile
+  ? window.innerHeight * 0.65
+  : smallScreen
+    ? window.innerHeight * 0.75
+    : isTablet
+      ? window.innerHeight * 0.8
+      : window.innerHeight * 0.7;
+const classicGraphics = false; // for now
+const stars_12 = true; // for now
+
+//----------------------- 4 ----------------------
 //-------------------- TRIALS --------------------
 
 var pcon_preload = {
   type: jsPsychPreload,
   auto_preload: true,
+  on_load: function () {
+    const container = document.querySelector(".jspsych-content");
+    console.log("container in pcon_preload on_load:", container);
+    if (container) {
+      container.classList.add("pcon-demos");
+    }
+  },
 };
 
 //initiate trials to be loaded within the refresh function
@@ -148,12 +254,36 @@ function refresh_pcon_trials() {
 
   instr1_trial = {
     type: resp_mode == "button" ? jsPsychHtmlButtonResponse : jsPsychHtmlKeyboardResponse,
-    choices: instr_choice,
-    prompt: instr1_prompt,
-    margin_horizontal: "40px",
-    margin_vertical: "0px",
-    stimulus: instr1_stim,
-    data: { task: phasename },
+    choices: instr_choice(),
+    button_html: classicGraphics
+      ? `<div class="image-btn-wrapper">
+          <input type="image" src="/assets/blank_button.png"
+                class="image-btn">
+          <svg class="image-btn-text" viewBox="0 0 266 160">
+            <text x="50%" y="50%">%choice%</text>
+          </svg>
+        </div>`
+      : `<div class="image-btn-wrapper">
+          <input type="image" src="/assets/blank_green.png"
+                class="image-btn">
+          <svg class="image-btn-text" viewBox="0 0 266 160">
+            <text class="text-stroke" x="50%" y="50%">%choice%</text>
+            <text class="text-fill" x="50%" y="50%">%choice%</text>
+          </svg>
+        </div>`,
+    on_load: function () {
+      requestAnimationFrame(() => {
+        fitIntroOutroToScreen(isMobile, isTablet, smallScreen);
+      });
+
+      setupButtonListeners();
+    },
+    on_finish: function () {
+      cleanupButtonListeners();
+    },
+
+    prompt: `<p class="prompt_text">${instr1_prompt()}</p>`,
+    stimulus: `<p class="prompt_text intro" >${instr1_stim()}</p>`,
   };
 
   demo1_trial = {
@@ -163,18 +293,71 @@ function refresh_pcon_trials() {
         choices: "NO_KEYS",
         trial_duration: 1000,
         response_ends_trial: false,
-        stimulus: lang.pcon.ready,
         data: { task: phasename },
+        stimulus: `<p class="prompt_text" >` + lang.pcon.ready + "</p>",
+        on_load: function () {
+          const contentDiv = document.querySelector(".jspsych-content");
+          if (contentDiv) {
+            contentDiv.classList.remove("start");
+          }
+        },
       },
       {
         //type: (resp_mode == 'button' ? jsPsychImageButtonResponse : jsPsychImageKeyboardResponse),
         //choices: (resp_mode == 'button' ? ['Same','Different'] : "NO_KEYS"),
         //button_html: '<button class="jspsych-btn dimtext">%choice%</button>',
-        type: jsPsychImageKeyboardResponse,
+        type: jsPsychCanvasKeyboardResponse,
+
+        // Canvas stimulus
+        stimulus: function (c) {
+          const ctx = c.getContext("2d");
+          const width = c.width;
+          const height = c.height;
+          const stimImg = new Image();
+          const framePadding = 20;
+          const radius = 25;
+
+          stimImg.onload = function () {
+            const imgWidth = isMobile
+              ? stimImg.width * 1.5
+              : isTablet
+                ? stimImg.width * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.width * 1.2;
+            const imgHeight = isMobile
+              ? stimImg.height * 1.5
+              : isTablet
+                ? stimImg.height * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.height * 1.2;
+            const x = (width - imgWidth) / 2;
+            const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#5d2514";
+            ctx.lineWidth = 15;
+            if (!classicGraphics) {
+              roundRect(
+                ctx,
+                x - framePadding,
+                y - framePadding,
+                imgWidth + 2 * framePadding,
+                imgHeight + 2 * framePadding,
+                radius
+              );
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.drawImage(stimImg, x, y, imgWidth, imgHeight);
+          };
+          stimImg.src = images["pprac1a.jpg"];
+        },
         choices: "NO_KEYS",
+        canvas_size: [canvasHeight, canvasWidth],
         trial_duration: 2000,
-        response_ends_trial: false,
-        stimulus: images["pprac1a.jpg"],
         data: { task: phasename },
       },
       {
@@ -182,51 +365,248 @@ function refresh_pcon_trials() {
         stimuli: noise_sequence,
         sequence_reps: 2,
         frame_time: 200,
-        prompt: wait,
+        render_on_canvas: true,
+        prompt: `<p class="prompt_text" id="animation-prompt">${wait()}</p>`,
+        on_start: function (trial) {
+          // The trial won't render until this Promise resolves
+          console.log("Preloading animation images before showing anything...");
+
+          return new Promise((resolve) => {
+            let loadedCount = 0;
+            const totalImages = trial.stimuli.length;
+            const images = [];
+
+            trial.stimuli.forEach((src, index) => {
+              const img = new Image();
+
+              img.onload = () => {
+                loadedCount++;
+                console.log(`Loaded ${loadedCount}/${totalImages}`);
+
+                if (loadedCount === totalImages) {
+                  console.log("ALL IMAGES LOADED. Now showing animation trial.");
+                  resolve(); // This allows the trial to render
+                }
+              };
+
+              img.onerror = () => {
+                console.error(`Failed to load image ${index}: ${src}`);
+                loadedCount++;
+                if (loadedCount === totalImages) {
+                  resolve();
+                }
+              };
+
+              img.src = src;
+              images.push(img);
+            });
+          });
+        },
+        on_load: function () {
+          // This runs AFTER on_start resolves and trial is displayed
+          const canvas = document.querySelector("canvas");
+
+          if (canvas) {
+            canvas.style.width = canvasWidth;
+            canvas.style.height = canvasHeight;
+            canvas.style.objectFit = "contain";
+            canvas.style.display = "block";
+            canvas.style.margin = "0 auto";
+          }
+
+          const content = document.querySelector(".jspsych-content");
+          if (content) {
+            content.style.textAlign = "center";
+          }
+
+          const promptText = document.getElementById("animation-prompt");
+          if (promptText) {
+            promptText.style.visibility = "visible";
+          }
+
+          console.log("Animation trial is now visible and running");
+        },
         data: { task: phasename },
       },
       {
-        type: resp_mode == "button" ? jsPsychImageButtonResponse : jsPsychImageKeyboardResponse,
-        choices: trial_choices,
-        prompt: trial_prompt,
+        //prompt: trial_prompt(),
+        type: resp_mode == "button" ? jsPsychCanvasButtonResponse : jsPsychCanvasKeyboardResponse,
+        data: { task: phasename },
+        // Canvas stimulus
+        stimulus: function (c) {
+          const ctx = c.getContext("2d");
+          const width = c.width;
+          const height = c.height;
+          const stimImg = new Image();
+          const stimPath = images["pprac1a.jpg"];
+          const framePadding = 20;
+          const radius = 25;
+
+          stimImg.onload = function () {
+            const imgWidth = isMobile
+              ? stimImg.width * 1.5
+              : isTablet
+                ? stimImg.width * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.width * 1.2;
+            const imgHeight = isMobile
+              ? stimImg.height * 1.5
+              : isTablet
+                ? stimImg.height * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.height * 1.2;
+            const x = (width - imgWidth) / 2;
+            const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#5d2514";
+            ctx.lineWidth = 15;
+            if (!classicGraphics) {
+              roundRect(
+                ctx,
+                x - framePadding,
+                y - framePadding,
+                imgWidth + 2 * framePadding,
+                imgHeight + 2 * framePadding,
+                radius
+              );
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.drawImage(stimImg, x, y, imgWidth, imgHeight);
+          };
+          stimImg.src = stimPath;
+        },
+        choices: trial_choices(),
         //stimulus_duration: 2000,
+        canvas_size: [canvasHeight * 0.95, canvasWidth],
         trial_duration: null,
         response_ends_trial: true,
-        stimulus: images["pprac1a.jpg"],
-        data: { task: phasename },
+        margin_horizontal: "40px",
+        button_html: classicGraphics
+          ? [
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_button.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_button.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+            ]
+          : [
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_green.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text class="text-stroke" x="50%" y="50%">%choice%</text>
+              <text class="text-fill" x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_blue.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text class="text-stroke" x="50%" y="50%">%choice%</text>
+              <text class="text-fill" x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+            ],
+        on_load: function () {
+          setupButtonListeners();
+        },
+
+        on_finish: function () {
+          cleanupButtonListeners();
+        },
       },
     ],
   };
 
-  instr2_trial = {
-    type: resp_mode == "button" ? jsPsychHtmlButtonResponse : jsPsychHtmlKeyboardResponse,
-    choices: instr_choice,
-    prompt: instr2_prompt,
-    margin_horizontal: "40px",
-    margin_vertical: "0px",
-    stimulus: instr2_stim,
-    data: { task: phasename },
-  };
+  instr2_trial = makeSideBySideTrial(
+    images["pprac1a.jpg"],
+    images["pprac1a.jpg"],
+    `<p class="prompt_text">${lang.pcon.instr2_stim + "<br><br>" + instr2_prompt()}</p>`,
+    instr_choice()
+  );
 
   demo2_trial = {
     timeline: [
       {
         type: jsPsychHtmlKeyboardResponse,
         choices: "NO_KEYS",
-        trial_duration: 500,
+        trial_duration: 1000,
         response_ends_trial: false,
-        stimulus: lang.pcon.ready,
         data: { task: phasename },
+        stimulus: `<p class="prompt_text" >` + lang.pcon.ready + "</p>",
       },
       {
         //type: (resp_mode == 'button' ? jsPsychImageButtonResponse : jsPsychImageKeyboardResponse),
         //choices: (resp_mode == 'button' ? ['Same','Different'] : "NO_KEYS"),
         //button_html: '<button class="jspsych-btn dimtext">%choice%</button>',
-        type: jsPsychImageKeyboardResponse,
+        type: jsPsychCanvasKeyboardResponse,
+
+        // Canvas stimulus
+        stimulus: function (c) {
+          const ctx = c.getContext("2d");
+          const width = c.width;
+          const height = c.height;
+          const stimImg = new Image();
+          const framePadding = 20;
+          const radius = 25;
+
+          stimImg.onload = function () {
+            const imgWidth = isMobile
+              ? stimImg.width * 1.5
+              : isTablet
+                ? stimImg.width * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.width * 1.2;
+            const imgHeight = isMobile
+              ? stimImg.height * 1.5
+              : isTablet
+                ? stimImg.height * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.height * 1.2;
+            const x = (width - imgWidth) / 2;
+            const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#5d2514";
+            ctx.lineWidth = 15;
+            if (!classicGraphics) {
+              roundRect(
+                ctx,
+                x - framePadding,
+                y - framePadding,
+                imgWidth + 2 * framePadding,
+                imgHeight + 2 * framePadding,
+                radius
+              );
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.drawImage(stimImg, x, y, imgWidth, imgHeight);
+          };
+          stimImg.src = images["pprac2a.jpg"];
+        },
         choices: "NO_KEYS",
+        canvas_size: [canvasHeight, canvasWidth],
         trial_duration: 2000,
-        response_ends_trial: false,
-        stimulus: images["pprac2a.jpg"],
         data: { task: phasename },
       },
       {
@@ -234,39 +614,190 @@ function refresh_pcon_trials() {
         stimuli: noise_sequence,
         sequence_reps: 2,
         frame_time: 200,
-        prompt: wait,
+        render_on_canvas: true,
+        prompt: `<p class="prompt_text" id="animation-prompt">${wait()}</p>`,
+        on_start: function (trial) {
+          // The trial won't render until this Promise resolves
+          console.log("Preloading animation images before showing anything...");
+
+          return new Promise((resolve) => {
+            let loadedCount = 0;
+            const totalImages = trial.stimuli.length;
+            const images = [];
+
+            trial.stimuli.forEach((src, index) => {
+              const img = new Image();
+
+              img.onload = () => {
+                loadedCount++;
+                console.log(`Loaded ${loadedCount}/${totalImages}`);
+
+                if (loadedCount === totalImages) {
+                  console.log("ALL IMAGES LOADED. Now showing animation trial.");
+                  resolve(); // This allows the trial to render
+                }
+              };
+
+              img.onerror = () => {
+                console.error(`Failed to load image ${index}: ${src}`);
+                loadedCount++;
+                if (loadedCount === totalImages) {
+                  resolve();
+                }
+              };
+
+              img.src = src;
+              images.push(img);
+            });
+          });
+        },
+        on_load: function () {
+          // This runs AFTER on_start resolves and trial is displayed
+          const canvas = document.querySelector("canvas");
+
+          if (canvas) {
+            canvas.style.width = canvasWidth;
+            canvas.style.height = canvasHeight;
+            canvas.style.objectFit = "contain";
+            canvas.style.display = "block";
+            canvas.style.margin = "0 auto";
+          }
+
+          const content = document.querySelector(".jspsych-content");
+          if (content) {
+            content.style.textAlign = "center";
+          }
+
+          const promptText = document.getElementById("animation-prompt");
+          if (promptText) {
+            promptText.style.visibility = "visible";
+          }
+
+          console.log("Animation trial is now visible and running");
+        },
         data: { task: phasename },
       },
       {
-        type: resp_mode == "button" ? jsPsychImageButtonResponse : jsPsychImageKeyboardResponse,
-        choices: trial_choices,
-        prompt: trial_prompt,
+        type: resp_mode == "button" ? jsPsychCanvasButtonResponse : jsPsychCanvasKeyboardResponse,
+        data: { task: phasename },
+        // Canvas stimulus
+        stimulus: function (c) {
+          const ctx = c.getContext("2d");
+          const width = c.width;
+          const height = c.height;
+          const stimImg = new Image();
+          const stimPath = images["pprac2b.jpg"];
+          const framePadding = 20;
+          const radius = 25;
+
+          stimImg.onload = function () {
+            const imgWidth = isMobile
+              ? stimImg.width * 1.5
+              : isTablet
+                ? stimImg.width * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.width * 1.2;
+            const imgHeight = isMobile
+              ? stimImg.height * 1.5
+              : isTablet
+                ? stimImg.height * 1.2
+                : smallScreen
+                  ? canvasHeight * 0.8
+                  : stimImg.height * 1.2;
+            const x = (width - imgWidth) / 2;
+            const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#5d2514";
+            ctx.lineWidth = 15;
+            if (!classicGraphics) {
+              roundRect(
+                ctx,
+                x - framePadding,
+                y - framePadding,
+                imgWidth + 2 * framePadding,
+                imgHeight + 2 * framePadding,
+                radius
+              );
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.drawImage(stimImg, x, y, imgWidth, imgHeight);
+          };
+          stimImg.src = stimPath;
+        },
+        choices: trial_choices(),
         //stimulus_duration: 2000,
+        canvas_size: [canvasHeight * 0.95, canvasWidth],
         trial_duration: null,
         response_ends_trial: true,
-        stimulus: images["pprac2b.jpg"],
-        data: { task: phasename },
+        margin_horizontal: "40px",
+        button_html: classicGraphics
+          ? [
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_button.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_button.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+            ]
+          : [
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_green.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text class="text-stroke" x="50%" y="50%">%choice%</text>
+              <text class="text-fill" x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+
+              `<div class="image-btn-wrapper">
+            <input type="image" src="/assets/blank_blue.png"
+                  class="image-btn">
+            <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+              <text class="text-stroke" x="50%" y="50%">%choice%</text>
+              <text class="text-fill" x="50%" y="50%">%choice%</text>
+            </svg>
+          </div>`,
+            ],
+        on_load: function () {
+          setupButtonListeners();
+        },
+
+        on_finish: function () {
+          cleanupButtonListeners();
+        },
       },
     ],
   };
 
-  instr3_trial = {
-    type: resp_mode == "button" ? jsPsychHtmlButtonResponse : jsPsychHtmlKeyboardResponse,
-    choices: instr_choice,
-    prompt: instr3_prompt,
-    margin_horizontal: "40px",
-    margin_vertical: "0px",
-    stimulus: instr3_stim,
-    data: { task: phasename },
-  };
+  instr3_trial = makeSideBySideTrial(
+    images["pprac2a.jpg"],
+    images["pprac2b.jpg"],
+    `<p class="prompt_text">${lang.pcon.instr3_stim + "<br><br>" + instr3_prompt()}</p>`,
+    instr_choice()
+  );
 
   pcon_end = {
     type: jsPsychHtmlKeyboardResponse,
     trial_duration: 500,
-    stimulus: lang.pcon.ty,
+    stimulus: `<p class="prompt_text">${lang.pcon.ty}</p>`,
     response_ends_trial: false,
     data: { task: phasename },
   };
+
+  console.log("pcon trials refreshed");
 }
 
 // pcon data summary function called on experiment end to include the summary in the data file

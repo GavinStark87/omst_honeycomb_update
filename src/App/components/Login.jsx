@@ -50,7 +50,7 @@ import Form from "react-bootstrap/Form";
 
 import PropTypes from "prop-types";
 
-import { deepCopy } from "../../lib/utils";
+import { deepCopy , getFormattedDate } from "../../lib/utils";
 
 import { writeOrderfile, loadOrderfile } from "../../config/cont";
 import { loadExptBlock1 } from "../../config/experiment";
@@ -60,7 +60,6 @@ import { refresh_pcon_trials } from "../../trials/pcon_demos";
 import { refresh_instr_trials } from "../../trials/instructions";
 import { refresh_cont_trials } from "../../trials/contOmst";
 
-import { getFormattedDate } from "../../lib/utils";
 
 //----------------------- 2 ----------------------
 //------------------- VARIABLES ------------------
@@ -494,7 +493,6 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
               </Form.Group>
               <Button
                 style={{ width: "100%" }}
-                block
                 size="lg"
                 type="submit"
                 disabled={participantId.length === 0 || studyId.length === 0}

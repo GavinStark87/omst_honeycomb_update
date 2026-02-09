@@ -63,7 +63,7 @@ import {
 import { lang, resp_mode } from "../App/components/Login";
 import { jsPsychCategorizeImageButtons } from "./uniquePlugins/plugin-categorize-image-buttons.js";
 
-import "./instructions.css";
+import "./css/instructions.css";
 
 //----------------------- 2 ----------------------
 //----------------- HELPER METHODS ---------------
@@ -679,7 +679,6 @@ const canvasHeight = isMobile ? window.innerHeight * 0.65
 const fontScale = isMobile ? 1.5 : 1.0;
 const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;*/
 const classicGraphics = false; // for now
-const stars_12 = true; // for now
 
 const preload_fnames = [];
 
@@ -743,6 +742,13 @@ function refresh_instr_trials(jsPsych) {
     on_finish: function (data) {
       console.log("Preload success? " + data.success);
       console.log("Failed on " + data.failed_images.length);
+    },
+    on_load: function () {
+      const container = document.querySelector(".jspsych-content");
+      if (container) {
+        container.classList.add("instructions");
+        container.classList.remove("pcon-demos");
+      }
     },
   };
 

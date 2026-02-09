@@ -24,11 +24,13 @@
 
 import jsPsychImageKeyboardResponse from "@jspsych/plugin-image-keyboard-response";
 import jsPsychImageButtonResponse from "@jspsych/plugin-image-button-response";
+import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-response";
 
 import $ from "jquery";
 
 //import { resp_mode } from '../trials/selectRespType';
 import { lang, resp_mode } from "../App/components/Login";
+import { getDeviceType, roundRect } from "../lib/utils";
 
 //----------------------- 2 ----------------------
 //----------------- HELPER METHODS ---------------
@@ -50,8 +52,33 @@ var trial_choices = function () {
     return [`${lang.pcon.key.trial_choices.same}`, `${lang.pcon.key.trial_choices.dif}`];
   }
 };
-
 //----------------------- 3 ----------------------
+//-------------------- CONSTANTS ------------------
+const device = getDeviceType();
+console.log("have device " + device);
+const isMobile = device[0];
+const isTablet = device[1];
+const smallScreen = device[2];
+const canvasWidth = isMobile
+  ? stars_12
+    ? window.innerWidth * 1
+    : window.innerWidth * 0.9
+  : isTablet
+    ? stars_12
+      ? window.innerWidth * 1
+      : window.innerWidth * 0.9
+    : window.innerWidth * 0.9;
+const canvasHeight = isMobile
+  ? window.innerHeight * 0.65
+  : smallScreen
+    ? window.innerHeight * 0.75
+    : isTablet
+      ? window.innerHeight * 0.8
+      : window.innerHeight * 0.7;
+const classicGraphics = false; // for now
+const stars_12 = true; // for now
+
+//----------------------- 4 ----------------------
 //-------------------- TRIALS --------------------
 
 //-------------------- INITIAL -------------------
@@ -81,9 +108,58 @@ export function trialPcon(config, options) {
   // return defaults
   return {
     type: jsPsychImageKeyboardResponse,
-    stimulus: image,
-    choices: trial_choices,
+
+    // Canvas stimulus
+    stimulus: function (c) {
+      const ctx = c.getContext("2d");
+      const width = c.width;
+      const height = c.height;
+      const stimImg = new Image();
+      const framePadding = 20;
+      const radius = 25;
+
+      stimImg.onload = function () {
+        const imgWidth = isMobile
+          ? stimImg.width * 1.5
+          : isTablet
+            ? stimImg.width * 1.2
+            : smallScreen
+              ? canvasHeight * 0.8
+              : stimImg.width * 1.2;
+        const imgHeight = isMobile
+          ? stimImg.height * 1.5
+          : isTablet
+            ? stimImg.height * 1.2
+            : smallScreen
+              ? canvasHeight * 0.8
+              : stimImg.height * 1.2;
+        const x = (width - imgWidth) / 2;
+        const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#5d2514";
+        ctx.lineWidth = 15;
+        if (!classicGraphics) {
+          roundRect(
+            ctx,
+            x - framePadding,
+            y - framePadding,
+            imgWidth + 2 * framePadding,
+            imgHeight + 2 * framePadding,
+            radius
+          );
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.drawImage(stimImg, x, y, imgWidth, imgHeight);
+      };
+      stimImg.src = image;
+    },
+    choices: "NO_KEYS",
+    canvas_size: [canvasHeight, canvasWidth],
     trial_duration: trialDuration,
+
     response_ends_trial: responseEndsTrial,
     on_load: () => {
       $("#jspsych-image-keyboard-response-stimulus").addClass("image");
@@ -102,7 +178,7 @@ export function trialPcon(config, options) {
 export function keyPconTrial(config, options) {
   // set default trial parameters for keyboard response
   const defaults = {
-    responseType: jsPsychImageKeyboardResponse,
+    type: jsPsychImageKeyboardResponse,
     stimulusHeight: 400,
     stimulusWidth: 400,
     choices: trial_choices,

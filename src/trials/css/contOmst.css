@@ -1,0 +1,47 @@
+.cont-omst .image-btn-text text {
+  font-size: 1.5em;
+}
+
+.mobile.cont-omst .image-btn-text text {
+  font-size: 1.5em;
+}
+.mobile.cont-omst .image-btn-text .text-stroke {
+  stroke-width: 12;
+}
+
+.cont-omst .image-btn-text.kr text,
+.cont-omst .image-btn-text.ru text {
+  font-size: 0.9em;
+}
+.cont-omst .image-btn-text.kr .text-stroke,
+.cont-omst .image-btn-text.ru .text-stroke {
+  stroke-width: 8;
+}
+
+.cont-omst .image-btn-text.nl text {
+  font-size: 0.9em;
+}
+
+.mobile.cont-omst .image-btn-text.kr text,
+.mobile.cont-omst .image-btn-text.nl text {
+  font-size: 0.8em;
+}
+.mobile.cont-omst .image-btn-text.kr .text-stroke,
+.mobile.cont-omst .image-btn-text.nl .text-stroke {
+  stroke-width: 8;
+}
+
+.mobile.cont-omst .image-btn-text.ru text {
+  font-size: 1.2em;
+}
+
+.tablet.cont-omst .image-btn-text.kr text {
+  font-size: 0.8em;
+}
+.tablet.cont-omst .image-btn-text.kr .text-stroke {
+  stroke-width: 8;
+}
+
+.tablet.cont-omst .image-btn-text.ru text {
+  font-size: 1.2em;
+}

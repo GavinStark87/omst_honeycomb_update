@@ -70,6 +70,7 @@ import {
   demo2_trial,
   instr3_trial,
   pcon_end,
+  refresh_pcon_trials,
 } from "../trials/pcon_demos";
 import { pconBlock1 } from "../config/pcon_config";
 
@@ -114,10 +115,21 @@ const jsPsychOptions = {
 
 //const buildPrimaryTimeline = () => {
 function buildTimeline(jsPsych, studyID, participantID) {
+  console.log("jsPsych object:", jsPsych);
+  console.log("jsPsych type:", typeof jsPsych);
+  console.log("jsPsych.run exists:", typeof jsPsych?.run);
   console.log(`Building timeline for participant ${participantID} on study ${studyID}`);
 
   refresh_instr_trials(jsPsych);
+  refresh_pcon_trials();
+  console.log("include_consent:", include_consent);
+  console.log("include_demog:", include_demog);
+  console.log("include_pcon:", include_pcon); // ← Is this true?
+  console.log("include_instr:", include_instr);
+  console.log("include_feedback:", include_feedback);
 
+  console.log("instr1_trial:", instr1_trial); // ← What does this object look like?
+  console.log("demo1_trial:", demo1_trial);
   const primaryTimeline = [];
 
   // conditional timeline if consent form is included
@@ -187,7 +199,7 @@ function buildTimeline(jsPsych, studyID, participantID) {
       repeat2,
       lure2,
       side_by_side2,
-      outro,
+      outro, // ← Add test trial here to check if jsPsych is working before the main experiment trials
     ],
     conditional_function: function () {
       if (include_instr) {

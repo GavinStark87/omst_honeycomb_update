@@ -39,20 +39,24 @@
 //-------------------- IMPORTS -------------------
 
 import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
-import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
+//import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
 import jsPsychPreload from "@jspsych/plugin-preload";
 import jsPsychCanvasButtonResponse from "@jspsych/plugin-canvas-button-response";
 import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-response";
-import jsPsychImageKeyboardResponse from "@jspsych/plugin-image-keyboard-response";
-import jsPsychImageButtonResponse from "@jspsych/plugin-image-button-response";
+//import jsPsychImageKeyboardResponse from "@jspsych/plugin-image-keyboard-response";
+//import jsPsychImageButtonResponse from "@jspsych/plugin-image-button-response";
 
-import './contOmst.css';
+import "./css/contOmst.css";
 
 import { twochoice, lang, resp_mode } from "../App/components/Login";
 
-import { invNormcdf, setupButtonListeners, cleanupButtonListeners, getDeviceType, drawHTMLText } from "../lib/utils";
-
-
+import {
+  invNormcdf,
+  setupButtonListeners,
+  cleanupButtonListeners,
+  getDeviceType,
+  drawHTMLText,
+} from "../lib/utils";
 
 // <script>
 // function waitFor(conditionFunction) {
@@ -134,6 +138,11 @@ import { invNormcdf, setupButtonListeners, cleanupButtonListeners, getDeviceType
 var omst_preload = {
   type: jsPsychPreload,
   auto_preload: true,
+  on_load: function () {
+    if (container) {
+      container.classList.add("cont-omst");
+    }
+  },
 };
 
 var instr_choice = function () {
@@ -177,17 +186,30 @@ const isMobile = device[0];
 const isTablet = device[1];
 const smallScreen = device[2];
 console.log("smallScreen " + smallScreen);
-const canvasWidth = isMobile ? stars_12 ? window.innerWidth * 1 : window.innerWidth * .9 
-                    : isTablet ? stars_12 ? window.innerWidth * 1 : window.innerWidth * .9
-                    : window.innerWidth * .9;
-const canvasHeight = isMobile ? window.innerHeight * 0.65 
-                    : smallScreen ? window.innerHeight * 0.75 
-                    : isTablet ? window.innerHeight * 0.8 
-                    : window.innerHeight * .70;
-const fontScale = isMobile ? 1.5 : 1.0;
-const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;
+const canvasWidth = isMobile
+  ? stars_12
+    ? window.innerWidth * 1
+    : window.innerWidth * 0.9
+  : isTablet
+    ? stars_12
+      ? window.innerWidth * 1
+      : window.innerWidth * 0.9
+    : window.innerWidth * 0.9;
+const canvasHeight = isMobile
+  ? window.innerHeight * 0.65
+  : smallScreen
+    ? window.innerHeight * 0.75
+    : isTablet
+      ? window.innerHeight * 0.8
+      : window.innerHeight * 0.7;
+//const fontScale = isMobile ? 1.5 : 1.0;
+//const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;
 const classicGraphics = false; // for now
 const stars_12 = true; // for now
+const container = document.querySelector(".jspsych-content");
+if (container) {
+  container.classList.add("cont-omst");
+}
 
 //----------------------- 4 ----------------------
 //--------------------- TRIALS -------------------
@@ -203,7 +225,13 @@ function refresh_cont_trials() {
     prompt: instr_prompt(),
     margin_horizontal: "40px",
     margin_vertical: "20px",
-    canvas_size: isMobile ? [canvasHeight * 0.8, canvasWidth] : isTablet ? [canvasHeight * 0.8, canvasWidth] : smallScreen ? [canvasHeight * 0.6, canvasWidth] : [canvasHeight * 0.65, canvasWidth],
+    canvas_size: isMobile
+      ? [canvasHeight * 0.8, canvasWidth]
+      : isTablet
+        ? [canvasHeight * 0.8, canvasWidth]
+        : smallScreen
+          ? [canvasHeight * 0.6, canvasWidth]
+          : [canvasHeight * 0.65, canvasWidth],
     button_html: `
         <div class="image-btn-wrapper">
           <input type="image" src="/assets/blank_green.png"
@@ -215,10 +243,10 @@ function refresh_cont_trials() {
         </div>
       `,
 
-    stimulus: function(c) {
+    stimulus: function (c) {
       console.log("instr stim " + instr_stim());
       console.log("instr prompt " + instr_prompt());
-      const ctx = c.getContext('2d');
+      const ctx = c.getContext("2d");
       const width = c.width;
       const height = c.height;
       const stimHTML = instr_stim();
@@ -230,21 +258,21 @@ function refresh_cont_trials() {
       ctx.save();
 
       if (isMobile) {
-        if (['kr', 'nl', 'ru'].includes(lang)) {
+        if (["kr", "nl", "ru"].includes(lang)) {
           drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
-        } else if (['cn', 'es'].includes(lang)) {
+        } else if (["cn", "es"].includes(lang)) {
           drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 84, device, classicGraphics);
         } else {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 96, device, classicGraphics );
+          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 96, device, classicGraphics);
         }
       } else if (isTablet) {
-        if (['kr', 'nl', 'ru'].includes(lang)) {
+        if (["kr", "nl", "ru"].includes(lang)) {
           drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.1, 64, device, classicGraphics);
         } else {
           drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.1, 64, device, classicGraphics);
         }
       } else {
-        if (['kr', 'nl', 'ru'].includes(lang)) {
+        if (["kr", "nl", "ru"].includes(lang)) {
           drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
         } else {
           drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
@@ -253,11 +281,11 @@ function refresh_cont_trials() {
 
       ctx.restore();
     },
-    on_load: function() {
+    on_load: function () {
       setupButtonListeners();
     },
 
-    on_finish: function() {
+    on_finish: function () {
       cleanupButtonListeners();
     },
     // add task name to data collection

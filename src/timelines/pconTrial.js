@@ -19,7 +19,7 @@
 //----------------------- 1 ----------------------
 //-------------------- IMPORTS -------------------
 
-import jsPsychImageKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
+import jsPsychImageKeyboardResponse from "@jspsych/plugin-image-keyboard-response";
 import jsPsychImageButtonResponse from "@jspsych/plugin-html-button-response";
 import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
 import jsPsychAnimation from "@jspsych/plugin-animation";
@@ -62,9 +62,9 @@ const pconTrial = (blockSettings, blockDetails, tlv) => {
       {
         type: jsPsychHtmlKeyboardResponse,
         choices: "NO_KEYS",
-        trial_duration: 500,
+        trial_duration: 1000,
         response_ends_trial: false,
-        stimulus: lang.pcon.ready,
+        stimulus: `<p class="prompt_text" >` + lang.pcon.ready + "</p>",
       },
       trialPcon(config, {
         image: function () {
@@ -76,7 +76,67 @@ const pconTrial = (blockSettings, blockDetails, tlv) => {
         stimuli: noise_sequence,
         sequence_reps: 2,
         frame_time: 200,
-        prompt: wait,
+        render_on_canvas: true,
+        prompt: `<p class="prompt_text" id="animation-prompt">${wait()}</p>`,
+        on_start: function (trial) {
+          // The trial won't render until this Promise resolves
+          console.log("Preloading animation images before showing anything...");
+
+          return new Promise((resolve) => {
+            let loadedCount = 0;
+            const totalImages = trial.stimuli.length;
+            const images = [];
+
+            trial.stimuli.forEach((src, index) => {
+              const img = new Image();
+
+              img.onload = () => {
+                loadedCount++;
+                console.log(`Loaded ${loadedCount}/${totalImages}`);
+
+                if (loadedCount === totalImages) {
+                  console.log("ALL IMAGES LOADED. Now showing animation trial.");
+                  resolve(); // This allows the trial to render
+                }
+              };
+
+              img.onerror = () => {
+                console.error(`Failed to load image ${index}: ${src}`);
+                loadedCount++;
+                if (loadedCount === totalImages) {
+                  resolve();
+                }
+              };
+
+              img.src = src;
+              images.push(img);
+            });
+          });
+        },
+        on_load: function () {
+          // This runs AFTER on_start resolves and trial is displayed
+          const canvas = document.querySelector("canvas");
+
+          if (canvas) {
+            //canvas.style.width = canvasWidth;
+            //canvas.style.height = canvasHeight;
+            canvas.style.objectFit = "contain";
+            canvas.style.display = "block";
+            canvas.style.margin = "0 auto";
+          }
+
+          const content = document.querySelector(".jspsych-content");
+          if (content) {
+            content.style.textAlign = "center";
+          }
+
+          const promptText = document.getElementById("animation-prompt");
+          if (promptText) {
+            promptText.style.visibility = "visible";
+          }
+
+          console.log("Animation trial is now visible and running");
+        },
       },
       keyPconTrial(config, {
         image: function () {
@@ -99,9 +159,9 @@ const pconTrial = (blockSettings, blockDetails, tlv) => {
       {
         type: jsPsychHtmlKeyboardResponse,
         choices: "NO_KEYS",
-        trial_duration: 500,
+        trial_duration: 1000,
         response_ends_trial: false,
-        stimulus: lang.pcon.ready,
+        stimulus: `<p class="prompt_text" >` + lang.pcon.ready + "</p>",
       },
       trialPcon(config, {
         image: function () {
@@ -113,7 +173,67 @@ const pconTrial = (blockSettings, blockDetails, tlv) => {
         stimuli: noise_sequence,
         sequence_reps: 2,
         frame_time: 200,
-        prompt: wait,
+        render_on_canvas: true,
+        prompt: `<p class="prompt_text" id="animation-prompt">${wait()}</p>`,
+        on_start: function (trial) {
+          // The trial won't render until this Promise resolves
+          console.log("Preloading animation images before showing anything...");
+
+          return new Promise((resolve) => {
+            let loadedCount = 0;
+            const totalImages = trial.stimuli.length;
+            const images = [];
+
+            trial.stimuli.forEach((src, index) => {
+              const img = new Image();
+
+              img.onload = () => {
+                loadedCount++;
+                console.log(`Loaded ${loadedCount}/${totalImages}`);
+
+                if (loadedCount === totalImages) {
+                  console.log("ALL IMAGES LOADED. Now showing animation trial.");
+                  resolve(); // This allows the trial to render
+                }
+              };
+
+              img.onerror = () => {
+                console.error(`Failed to load image ${index}: ${src}`);
+                loadedCount++;
+                if (loadedCount === totalImages) {
+                  resolve();
+                }
+              };
+
+              img.src = src;
+              images.push(img);
+            });
+          });
+        },
+        on_load: function () {
+          // This runs AFTER on_start resolves and trial is displayed
+          const canvas = document.querySelector("canvas");
+
+          if (canvas) {
+            //canvas.style.width = canvasWidth;
+            //canvas.style.height = canvasHeight;
+            canvas.style.objectFit = "contain";
+            canvas.style.display = "block";
+            canvas.style.margin = "0 auto";
+          }
+
+          const content = document.querySelector(".jspsych-content");
+          if (content) {
+            content.style.textAlign = "center";
+          }
+
+          const promptText = document.getElementById("animation-prompt");
+          if (promptText) {
+            promptText.style.visibility = "visible";
+          }
+
+          console.log("Animation trial is now visible and running");
+        },
       },
       buttonPconTrial(config, {
         image: function () {

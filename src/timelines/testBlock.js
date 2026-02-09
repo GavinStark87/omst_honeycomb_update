@@ -21,8 +21,8 @@
 //-------------------- IMPORTS -------------------
 
 import htmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
-import testTrial from "./testTrial";
 import { generateStartingOpts } from "../lib/taskUtils";
+import testTrial from "./testTrial";
 
 //----------------------- 2 ----------------------
 //-------------------- TIMELINE ------------------
@@ -40,6 +40,7 @@ const testBlock = (blockSettings, jsPsych) => {
   // };
 
   // timeline = loop through trials
+  console.log("IN TEST BLOCK");
   console.dir(jsPsych); // remove
   const timeline = startingOpts.map((tlv) => testTrial(tlv));
 
