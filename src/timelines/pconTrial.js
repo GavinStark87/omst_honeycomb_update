@@ -25,7 +25,7 @@ import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response"
 import jsPsychAnimation from "@jspsych/plugin-animation";
 
 import { config } from "../config/main";
-import { images } from "../lib/utils";
+import { images , getDeviceType } from "../lib/utils";
 
 import { lang, resp_mode } from "../App/components/Login";
 
@@ -36,7 +36,7 @@ import { trialPcon, keyPconTrial, buttonPconTrial } from "../trials/trialPcon";
 //---------------- HELPER METHODS ----------------
 
 var wait = function () {
-  return "<p>" + lang.pcon.wait;
+  return lang.pcon.wait;
 };
 
 // noise animation sequence
@@ -47,8 +47,34 @@ var noise_sequence = [
   images["noise_4.png"],
   images["noise_5.png"],
 ];
-
 //----------------------- 3 ----------------------
+//-------------------- CONSTANTS ------------------
+const device = getDeviceType();
+console.log("have device " + device);
+const isMobile = device[0];
+const isTablet = device[1];
+const smallScreen = device[2];
+console.log("smallScreen " + smallScreen);
+const canvasWidth = isMobile
+  ? stars_12
+    ? window.innerWidth * 1
+    : window.innerWidth * 0.9
+  : isTablet
+    ? stars_12
+      ? window.innerWidth * 1
+      : window.innerWidth * 0.9
+    : window.innerWidth * 0.9;
+const canvasHeight = isMobile
+  ? window.innerHeight * 0.65
+  : smallScreen
+    ? window.innerHeight * 0.75
+    : isTablet
+      ? window.innerHeight * 0.8
+      : window.innerHeight * 0.7;
+const classicGraphics = false; // for now
+const stars_12 = true; // for now
+
+//----------------------- 4 ----------------------
 //-------------------- TIMELINE ------------------
 // sets up a basic trial in the pcon, gets repeated for each timeline var
 
@@ -118,8 +144,8 @@ const pconTrial = (blockSettings, blockDetails, tlv) => {
           const canvas = document.querySelector("canvas");
 
           if (canvas) {
-            //canvas.style.width = canvasWidth;
-            //canvas.style.height = canvasHeight;
+            canvas.style.width = canvasWidth;
+            canvas.style.height = canvasHeight;
             canvas.style.objectFit = "contain";
             canvas.style.display = "block";
             canvas.style.margin = "0 auto";

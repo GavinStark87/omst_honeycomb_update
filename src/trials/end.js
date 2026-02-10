@@ -29,7 +29,7 @@ import { lang } from "../App/components/Login";
 var end_message = {
   type: jsPsychHtmlKeyboardResponse,
   stimulus: function () {
-    return lang.end.ty;
+    return `<p class="prompt_text">${lang.end.ty}</p>`;
   },
   trial_duration: 1000,
   response_ends_trial: true,

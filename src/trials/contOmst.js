@@ -139,6 +139,7 @@ var omst_preload = {
   type: jsPsychPreload,
   auto_preload: true,
   on_load: function () {
+    const container = document.querySelector(".jspsych-content");
     if (container) {
       container.classList.add("cont-omst");
     }
@@ -206,10 +207,6 @@ const canvasHeight = isMobile
 //const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;
 const classicGraphics = false; // for now
 const stars_12 = true; // for now
-const container = document.querySelector(".jspsych-content");
-if (container) {
-  container.classList.add("cont-omst");
-}
 
 //----------------------- 4 ----------------------
 //--------------------- TRIALS -------------------
@@ -299,7 +296,7 @@ var debrief_block = {
   type: jsPsychHtmlKeyboardResponse,
   trial_duration: 500,
   stimulus: function () {
-    return lang.cont.ty;
+    return `<p class="prompt_text">${lang.cont.ty}</p>`;
   },
   // add task name to data collection
   data: { task: "oMSTCont" },
@@ -333,7 +330,7 @@ const omst_feedback = (jsPsych) => ({
     console.log("LDI ", trial.ldi);
     //console.log(data)
   },
-  prompt: lang.cont.ty,
+  prompt: `<p class="prompt_text">${lang.cont.ty}</p>`,
   stimulus: function (c) {
     var ctx = c.getContext("2d");
     ctx.globalCompositeOperation = "source-over";
@@ -375,6 +372,24 @@ const omst_feedback = (jsPsych) => ({
     //console.log(txtx)
     ctx.fillText(ldi.toString(), xPos - ctx.measureText(ldi.toString()).width / 2, 18);
   },
+  button_html: `
+        <div class="image-btn-wrapper">
+          <input type="image" src="/assets/blank_green.png"
+                class="image-btn" style="">
+          <svg class="image-btn-text" viewBox="0 0 266 160">
+            <text class="text-stroke" x="50%" y="50%">%choice%</text>
+            <text class="text-fill" x="50%" y="50%">%choice%</text>
+          </svg>
+        </div>
+      `,
+  on_load: function () {
+    setupButtonListeners();
+  },
+  on_finish: function () {
+    cleanupButtonListeners();
+  },
+  // add task name to data collection
+  data: { task: "oMSTContFeedback" },
 });
 
 var retstr;

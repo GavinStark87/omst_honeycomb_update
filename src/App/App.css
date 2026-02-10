@@ -23,14 +23,14 @@
 /************************************************************************/
 
 @font-face {
-  font-family: 'Comic Relief';
-  src: url('../../public/assets/fonts/ComicRelief-Regular.woff2') format('woff2');
+  font-family: "Comic Relief";
+  src: url("../../public/assets/fonts/ComicRelief-Regular.woff2") format("woff2");
   font-weight: 400;
 }
 
 @font-face {
-  font-family: 'Comic Relief';
-  src: url('../../public/assets/fonts/ComicRelief-Bold.woff2') format('woff2');
+  font-family: "Comic Relief";
+  src: url("../../public/assets/fonts/ComicRelief-Bold.woff2") format("woff2");
   font-weight: 700;
 }
 
@@ -159,18 +159,153 @@ body.classic {
 }
 
 /* fonts and type */
- 
+
 .jspsych-display-element {
-  font-family: 'Open Sans', 'Arial', sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   font-size: 25px; /*changed from 18*/
   line-height: 1.6em;
 }
 
 /* Form elements like input fields and buttons */
 
-.jspsych-display-element input[type='text'] {
-  font-family: 'Open Sans', 'Arial', sans-serif;
+.jspsych-display-element input[type="text"] {
+  font-family: "Open Sans", "Arial", sans-serif;
   font-size: 14px;
+}
+
+.no-default-btn .jspsych-btn {
+  display: none !important;
+}
+
+/* Wrapper for radio + label */
+.radio-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+}
+
+.mobile .radio-wrapper {
+  width: 30px;
+  height: 30px;
+}
+
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #fff8d6;
+  width: 22px;
+  height: 22px;
+  border: 3px solid #5d2b12;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  margin: 0; /* remove default margin */
+}
+
+.classic input[type="radio"] {
+  background-color: white;
+  border-color: black;
+}
+
+/* Text label centered on radio button */
+input[type="radio"] + label,
+.radio-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: bold;
+  color: #5d2b12;
+  pointer-events: none; /* allow clicking through to radio */
+  line-height: 1;
+  margin: 0;
+}
+
+.classic input[type="radio"] + label,
+.classic .radio-text {
+  color: black;
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: #5d2b12;
+  border-radius: 50%;
+}
+
+.classic input[type="radio"]:checked::after {
+  background: black;
+}
+
+.mobile input[type="radio"] {
+  width: 30px;
+  height: 30px;
+  border: 4px solid #5d2b12;
+}
+
+.classic.mobile input[type="radio"] {
+  border-color: black;
+}
+
+.mobile input[type="radio"]:checked::after {
+  width: 17px;
+  height: 17px;
+}
+
+.mobile input[type="radio"] + label,
+.mobile .radio-text {
+  font-size: 16px;
+}
+
+.jspsych-display-element input[type="text"] {
+  height: 24px;
+  width: 240px;
+  font-size: 22px;
+  color: #5d2b12;
+  font-family: "Comic Relief", sans-serif;
+  border: 2px solid #5d2b12;
+  border-radius: 4px;
+  vertical-align: middle;
+  line-height: 1.2;
+}
+
+.classic.jspsych-display-element input[type="text"] {
+  font-family: "Open Sans", "Arial", sans-serif;
+  color: black;
+  border: 2px solid black;
+}
+
+.jspsych-display-element input[type="text"]:focus {
+  border: 2px solid #5d2b12;
+  border-color: #5d2b12;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.classic.jspsych-display-element input[type="text"]:focus {
+  border-color: black;
+}
+
+.jspsych-display-element input[type="text"]:focus-visible {
+  border: 2px solid #5d2b12;
+  border-color: #5d2b12;
+}
+
+.classic.jspsych-display-element input[type="text"]:focus-visible {
+  border-color: black;
+}
+
+.mobile.jspsych-display-element input[type="text"] {
+  height: 48px;
+  font-size: 44px;
 }
 
 /* borrowing Bootstrap style for btn elements, but combining styles a bit */
@@ -179,7 +314,7 @@ body.classic {
   padding: 6px 12px;
   font-size: 30px;
   font-weight: 400;
-  font-family: 'Open Sans', 'Arial', sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   cursor: pointer;
   line-height: 1.4;
   text-align: center;
@@ -219,7 +354,7 @@ body.classic {
   user-select: none;
 }
 
-.image-btn-wrapper.pressed .image-btn-text{
+.image-btn-wrapper.pressed .image-btn-text {
   transform: translate(-50%, -40%) !important;
 }
 
@@ -239,14 +374,14 @@ body.classic {
   /* Remove tap highlight */
   -webkit-tap-highlight-color: transparent;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  
+
   /* Remove touch delay */
   touch-action: manipulation;
-  
+
   /* Prevent text selection */
   -webkit-user-select: none;
   user-select: none;
-  
+
   /* Prevent callout menu on long press */
   -webkit-touch-callout: none;
 }
@@ -281,7 +416,7 @@ body.classic {
 }
 
 .image-btn-text text {
-  font-family: 'Comic Relief', sans-serif;
+  font-family: "Comic Relief", sans-serif;
   font-size: 2.6em;
   font-weight: bold;
   letter-spacing: 0.08em;
@@ -302,17 +437,21 @@ body.classic {
   stroke: none;
 }
 
+.image-btn-text.demo text {
+  font-size: 1.6em;
+}
+
 .prompt_text {
   font-family: "Comic Relief", system-ui;
   color: #5d2b12;
   font-weight: normal;
   line-height: 1.2;
   -webkit-text-size-adjust: none;
-  text-size-adjust: none; 
+  text-size-adjust: none;
 }
 
 .classic .prompt_text {
-  font-family: 'Open Sans', 'Arial', sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   color: black;
 }
 
@@ -449,7 +588,7 @@ body.classic {
 /*----------------- CONSENT FORM -----------------*/
 
 #consenttext {
-  font-family: 'Open Sans', 'Arial', sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   text-align: left;
   font-size: 18px;
   color: #666;
@@ -460,7 +599,7 @@ body.classic {
 
 #consenttext li,
 ul {
-  font-family: 'Open Sans', 'Arial', sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   text-align: left;
   font-size: 20px;
   color: #666;
@@ -469,15 +608,10 @@ ul {
 
 #agreeButton,
 #cancelButton {
-  color: #555;
-  font-size: 16px;
+  font-size: 0.5em;
   font-weight: bold;
-  background-color: #ccc;
-  border: solid 4px #ddd;
-  border-radius: 4px;
   padding: 0.5em 2em;
 }
-
 
 /*----------------------- 5 ----------------------*/
 /*----------------- DEMOGRAPHICS -----------------*/
@@ -499,5 +633,3 @@ ul {
   font-size: 18px;
   line-height: 1.6em;
 }
-
-

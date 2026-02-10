@@ -712,6 +712,13 @@ function refresh_pcon_trials() {
             ctx.strokeStyle = "#5d2514";
             ctx.lineWidth = 15;
             if (!classicGraphics) {
+              console.log("drawing rounded rectangle with params:", {
+                x: x - framePadding,
+                y: y - framePadding,
+                width: imgWidth + 2 * framePadding,
+                height: imgHeight + 2 * framePadding,
+                radius: radius,
+              });
               roundRect(
                 ctx,
                 x - framePadding,

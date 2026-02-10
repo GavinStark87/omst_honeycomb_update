@@ -21,10 +21,15 @@
 //----------------------- 1 ----------------------
 //-------------------- IMPORTS -------------------
 
-import { lang } from "../App/components/Login";
 import jsPsychSurveyHtmlForm from "@jspsych/plugin-survey-html-form";
+import { lang } from "../App/components/Login";
 
+import { setupButtonListeners, cleanupButtonListeners } from "../lib/utils";
 //----------------------- 2 ----------------------
+//----------------- CONSTANTS ------------------
+const classicGraphics = false;
+
+//----------------------- 3 ----------------------
 //--------------------- TRIAL --------------------
 
 // demographics survey trial
@@ -34,55 +39,137 @@ import jsPsychSurveyHtmlForm from "@jspsych/plugin-survey-html-form";
 var demogform = {
   type: jsPsychSurveyHtmlForm,
   preamble: function () {
-    return '<div id ="demogpramble">' + lang.demog.preamble + "</div>";
+    return (
+      '<div id ="demogpramble"> <p class="prompt_text ${lang}">' +
+      lang.demog.preamble +
+      "</p></div>"
+    );
   },
+  css_classes: ["no-default-btn"],
   html: function () {
     return (
-      '<div id ="demogform"> \
-      <p><b>' +
+      `<div id="demogform"> \
+      <p class="prompt_text ${lang}"><b>` +
       lang.demog.age +
-      '</b> <input name="dob" type="text" required /></p> \
-      <p> <b>' +
+      `</b> <input name="dob" type="text" required /></p> \
+      
+      <p class="prompt_text ${lang}"> <b>` +
       lang.demog.gender.prompt +
-      '</b>\
-         <br><input type="radio" id="male" name="gender" value="male" style="margin-left: 50px" required > <label for="male">' +
+      `</b></p>\
+      <div style="margin-left: 50px">\
+         <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="male" name="gender" value="male" required>\
+         </div>\
+         <label for="male" style="display: inline-block; vertical-align: middle; margin-right: 20px;" class="prompt_text ${lang}">` +
       lang.demog.gender.m +
-      '</label> \
-         <br><input type="radio" id="female" name="gender" value="female" style="margin-left: 50px"  > <label for="female">' +
+      `</label><br>\
+         <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="female" name="gender" value="female">\
+         </div>\
+         <label for="female" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.gender.f +
-      "</label> \
-      <p> <b>" +
+      `</label>\
+      </div>\
+      
+      <p class="prompt_text ${lang}"> <b>` +
       lang.demog.ethnicity.prompt +
-      '</b>\
-         <br><input type="radio" id="hispanic" name="ethnicity" value="hispanic" style="margin-left: 50px" required> <label for="hispanic">' +
+      `</b></p>\
+      <div style="margin-left: 50px">\
+         <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="hispanic" name="ethnicity" value="hispanic" class="prompt_text ${lang}" required>\
+         </div>\
+         <label for="hispanic" style="display: inline-block; vertical-align: middle; margin-right: 20px;" class="prompt_text ${lang}">` +
       lang.demog.ethnicity.h +
-      '</label>  \
-         <br><input type="radio" id="nonhispanic" name="ethnicity" value="nonhispanic" style="margin-left: 50px"> <label for="nonhispanic">' +
+      `</label><br>\
+         <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="nonhispanic" name="ethnicity" value="nonhispanic">\
+         </div>\
+         <label for="nonhispanic" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.ethnicity.nh +
-      "</label> \
-      <p> <b>" +
+      `</label>\
+      </div>\
+      
+      <p class="prompt_text ${lang}"> <b>` +
       lang.demog.race.prompt +
-      '</b>\
-         <br><input type="radio" id="nativeamerican" name="race" value="nativeamerican" style="margin-left: 50px" required> <label for="nativeamerican">' +
+      `</b></p>\
+      <div style="margin-left: 50px">\
+         <div>\
+            <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="nativeamerican" name="race" value="nativeamerican" required>\
+            </div>\
+            <label for="nativeamerican" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.race.ai +
-      '</label> \
-         <br><input type="radio" id="asian" name="race" value="asian" style="margin-left: 50px"> <label for="asian">' +
+      `</label>\
+         </div>\
+         <div>\
+            <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="asian" name="race" value="asian">\
+            </div>\
+            <label for="asian" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.race.a +
-      '</label> \
-         <br><input type="radio" id="black" name="race" value="black" style="margin-left: 50px"> <label for="black">' +
+      `</label>\
+         </div>\
+         <div>\
+            <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="black" name="race" value="black">\
+            </div>\
+            <label for="black" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.race.b +
-      '</label> \
-         <br><input type="radio" id="nativehawaiian" name="race" value="nativehawaiian" style="margin-left: 50px"> <label for="nativehawaiian">' +
+      `</label>\
+         </div>\
+         <div>\
+            <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="nativehawaiian" name="race" value="nativehawaiian">\
+            </div>\
+            <label for="nativehawaiian" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.race.nh +
-      '</label> \
-         <br><input type="radio" id="white" name="race" value="white" style="margin-left: 50px"> <label for="white">' +
+      `</label>\
+         </div>\
+         <div>\
+            <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="white" name="race" value="white">\
+            </div>\
+            <label for="white" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.race.w +
-      '</label> \
-         <br><input type="radio" id="more" name="race" value="more" style="margin-left: 50px"> <label for="more">' +
+      `</label>\
+         </div>\
+         <div>\
+            <div class="radio-wrapper" style="display: inline-block; margin-right: 10px; vertical-align: middle;">\
+            <input type="radio" id="more" name="race" value="more">\
+            </div>\
+            <label for="more" style="display: inline-block; vertical-align: middle;" class="prompt_text ${lang}">` +
       lang.demog.race.m +
-      "</label> \
-      </div>"
+      `</label>\
+         </div>\
+      </div>\
+      </div>` +
+      `<div class="image-btn-wrapper">
+         <input type="image" src="/assets/blank_${classicGraphics ? "button" : "green"}.png"
+               class="image-btn" id="id_continue_btn">
+         <svg class="image-btn-text demo" viewBox="0 0 266 160">
+            <text class="text-stroke" x="50%" y="50%">Continue</text>
+            <text class="text-fill" x="50%" y="50%">Continue</text>
+         </svg>
+      </div>`
     );
+  },
+  on_load: function () {
+    // grab the form element
+    const form = document.querySelector("form");
+    // grab the custom button input
+    const btn = form.querySelector(".image-btn-wrapper input");
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault(); // prevent weird image input default
+      form.requestSubmit(); // properly submit the form
+    });
+
+    setupButtonListeners();
+  },
+
+  on_finish: function (data) {
+    cleanupButtonListeners();
+    console.log(data.response);
   },
   // add task name to data collection
   data: { task: "demographics" },

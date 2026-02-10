@@ -25,9 +25,11 @@
 //----------------------- 1 ----------------------
 //-------------------- IMPORTS -------------------
 
-import { lang } from "../App/components/Login";
 import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
 import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
+import { lang } from "../App/components/Login";
+
+import { getDeviceType, setupButtonListeners, cleanupButtonListeners } from "../lib/utils";
 
 //----------------------- 2 ----------------------
 //----------------- HELPER METHODS ---------------
@@ -57,13 +59,35 @@ var irb_stim = function () {
 };
 
 var buttons = function () {
-  return [
-    '<div id="agreeButton">' + lang.consent.buttons.agree + "</div>",
-    '<div id="cancelButton">' + lang.consent.buttons.cancel + "</div>",
-  ];
+  return [lang.consent.buttons.agree, lang.consent.buttons.cancel];
 };
+///----------------------- 3 ----------------------
+//-------------------- CONSTANTS ------------------
+const device = getDeviceType();
+console.log("have device " + device);
+const isMobile = device[0];
+const isTablet = device[1];
+const smallScreen = device[2];
+const canvasWidth = isMobile
+  ? stars_12
+    ? window.innerWidth * 1
+    : window.innerWidth * 0.9
+  : isTablet
+    ? stars_12
+      ? window.innerWidth * 1
+      : window.innerWidth * 0.9
+    : window.innerWidth * 0.9;
+const canvasHeight = isMobile
+  ? window.innerHeight * 0.65
+  : smallScreen
+    ? window.innerHeight * 0.75
+    : isTablet
+      ? window.innerHeight * 0.8
+      : window.innerHeight * 0.7;
+const classicGraphics = false; // for now
+const stars_12 = true; // for now
 
-//----------------------- 3 ----------------------
+//----------------------- 4 ----------------------
 //--------------------- TRIALS -------------------
 
 // consent trial settup
@@ -75,13 +99,54 @@ var consent_trial = {
   choices: buttons,
   margin_vertical: "20px",
   data: { task: "consent" }, // add task name to data collection
+  on_load: function () {
+    setupButtonListeners();
+  },
   on_finish: function (data) {
+    cleanupButtonListeners();
     if (data.response == 0) {
       consentGiven = true; //var used to run conditional timeline
     } else {
       consentGiven = false;
     }
   },
+  button_html: classicGraphics
+    ? [
+        `<div class="image-btn-wrapper" id="agreeButton"> 
+        <input type="image" src="/assets/blank_button.png"
+              class="image-btn">
+        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <text x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`,
+
+        `<div class="image-btn-wrapper" id="cancelButton">
+        <input type="image" src="/assets/blank_button.png"
+              class="image-btn">
+        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <text x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`,
+      ]
+    : [
+        `<div class="image-btn-wrapper" id="agreeButton">
+        <input type="image" src="/assets/blank_green.png"
+              class="image-btn">
+        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <text class="text-stroke" x="50%" y="50%">%choice%</text>
+          <text class="text-fill" x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`,
+
+        `<div class="image-btn-wrapper" id="cancelButton">
+        <input type="image" src="/assets/blank_blue.png"
+              class="image-btn">
+        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <text class="text-stroke" x="50%" y="50%">%choice%</text>
+          <text class="text-fill" x="50%" y="50%">%choice%</text>
+        </svg>
+      </div>`,
+      ],
 };
 
 // trial called in conditional timeline if participant does not consent

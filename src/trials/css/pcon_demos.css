@@ -93,9 +93,10 @@
   height: 100svh;
   width: 100svw;
   justify-content: center !important;
+  align-content: center;
 }
 
-.jspsych-content {
+.jspsych-content.pcon-demos:not(.ready) {
   visibility: hidden !important;
 }
 
