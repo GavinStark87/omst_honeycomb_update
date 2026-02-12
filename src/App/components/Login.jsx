@@ -50,16 +50,16 @@ import Form from "react-bootstrap/Form";
 
 import PropTypes from "prop-types";
 
-import { deepCopy , getFormattedDate } from "../../lib/utils";
+import { deepCopy, getFormattedDate } from "../../lib/utils";
 
 import { writeOrderfile, loadOrderfile } from "../../config/cont";
 import { loadExptBlock1 } from "../../config/experiment";
 import { defaultBlockSettings } from "../../config/main";
 
 import { refresh_pcon_trials } from "../../trials/pcon_demos";
+import { refresh_pairwise_trials } from "../../trials/pairwise_demos";
 import { refresh_instr_trials } from "../../trials/instructions";
 import { refresh_cont_trials } from "../../trials/contOmst";
-
 
 //----------------------- 2 ----------------------
 //------------------- VARIABLES ------------------
@@ -76,6 +76,7 @@ var language;
 var include_consent;
 var include_demog;
 var include_pcon;
+var include_pairwise;
 var include_instr;
 var include_feedback;
 
@@ -85,6 +86,7 @@ var exptBlock1 = deepCopy(defaultBlockSettings);
 var consent_login_data;
 var demog_login_data;
 var pcon_login_data;
+var pairwise_login_data;
 var instr_login_data;
 var cont_login_data;
 
@@ -106,6 +108,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
   const [includeConsent, setConsent] = useState(false);
   const [includeDemog, setDemog] = useState(false);
   const [includePcon, setPcon] = useState(false);
+  const [includePairwise, setPairwise] = useState(false);
   const [includeInstr, setInstr] = useState(false);
   const [includeFeedback, setFeedback] = useState(false);
   const [showExperimenterView, setShowExperimenterView] = useState(false); // Toggle for experimenter view
@@ -124,6 +127,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     const storedConsent = localStorage.getItem(`${studyId}_consent`);
     const storedDemog = localStorage.getItem(`${studyId}_demog`);
     const storedPcon = localStorage.getItem(`${studyId}_pcon`);
+    const storedPairwise = localStorage.getItem(`${studyId}_pairwise`);
     const storedInstr = localStorage.getItem(`${studyId}_instr`);
     const storedFeedback = localStorage.getItem(`${studyId}_feedback`);
 
@@ -137,6 +141,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     setConsent(storedConsent == "true");
     setDemog(storedDemog == "true");
     setPcon(storedPcon == "true");
+    setPairwise(storedPairwise == "true");
     setInstr(storedInstr == "true");
     setFeedback(storedFeedback == "true");
   }, [studyId]); // Only run this effect when studyId change
@@ -208,6 +213,9 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     include_pcon = includePcon;
     console.log("include pcon =" + includePcon);
 
+    include_pairwise = includePairwise;
+    console.log("include pairwise =" + includePairwise);
+
     include_instr = includeInstr;
     console.log("include instr =" + includeInstr);
 
@@ -228,6 +236,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     refresh_instr_trials();
     refresh_cont_trials();
     refresh_pcon_trials();
+    refresh_pairwise_trials();
 
     // Save the user-selected options to localStorage
     localStorage.setItem(`${studyId}_stimset`, chooseStimset);
@@ -239,6 +248,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     localStorage.setItem(`${studyId}_consent`, includeConsent);
     localStorage.setItem(`${studyId}_demog`, includeDemog);
     localStorage.setItem(`${studyId}_pcon`, includePcon);
+    localStorage.setItem(`${studyId}_pairwise`, includePairwise);
     localStorage.setItem(`${studyId}_instr`, includeInstr);
     localStorage.setItem(`${studyId}_feedback`, includeFeedback);
 
@@ -252,6 +262,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
       include_consent: include_consent,
       include_demog: include_demog,
       include_pcon: include_pcon,
+      include_pairwise: include_pairwise,
       include_instr: include_instr,
       include_feedback: include_feedback,
       twochoice: twochoice,
@@ -266,11 +277,15 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
         console.log("overwrite: login data at pcon");
         pcon_login_data = login_data;
         if (!include_pcon) {
-          console.log("overwrite: login data at instr");
-          instr_login_data = login_data;
-          if (!include_instr) {
-            console.log("overwrite: login data at cont");
-            cont_login_data = login_data;
+          console.log("overwrite: login data at pairwise");
+          pairwise_login_data = login_data;
+          if (!include_pairwise) {
+            console.log("overwrite: login data at instr");
+            instr_login_data = login_data;
+            if (!include_instr) {
+              console.log("overwrite: login data at cont");
+              cont_login_data = login_data;
+            }
           }
         }
       }
@@ -405,6 +420,16 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
                       label="Perceptual Control"
                       checked={includePcon}
                       onChange={(e) => setPcon(e.target.checked)}
+                    />
+                  </Form.Group>
+                </div>
+                <div className="checkbox-option">
+                  <Form.Group controlId="pairwise">
+                    <Form.Check
+                      type="checkbox"
+                      label="Pairwise Perceptual Control"
+                      checked={includePairwise}
+                      onChange={(e) => setPairwise(e.target.checked)}
                     />
                   </Form.Group>
                 </div>
@@ -547,6 +572,7 @@ export {
   include_consent,
   include_demog,
   include_pcon,
+  include_pairwise,
   include_instr,
   include_feedback,
   twochoice,
@@ -557,6 +583,7 @@ export {
   consent_login_data,
   demog_login_data,
   pcon_login_data,
+  pairwise_login_data,
   instr_login_data,
   cont_login_data,
 };

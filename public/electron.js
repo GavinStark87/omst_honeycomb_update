@@ -24,8 +24,8 @@
 //*******************************************************************
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, dialog } = require("electron");
 const path = require("path");
+const { app, BrowserWindow, dialog } = require("electron");
 const ipc = require("electron").ipcMain;
 //const _ = require("lodash");
 const fs = require("fs-extra");
@@ -240,6 +240,9 @@ ipc.on("data", (event, args) => {
     stream_csv.write("Consent included: " + args.login_data.include_consent + "\n");
     stream_csv.write("Demographics included: " + args.login_data.include_demog + "\n");
     stream_csv.write("Perceptual control included: " + args.login_data.include_pcon + "\n");
+    stream_csv.write(
+      "Pairwise perceptual control included: " + args.login_data.include_pairwise + "\n"
+    );
     stream_csv.write("Instructions included: " + args.login_data.include_instr + "\n");
     stream_csv.write("\n");
     fileCreated = true;
@@ -294,6 +297,31 @@ ipc.on("data", (event, args) => {
       trial_offset = args.trial_index;
       //console.log('OFFSET IS', trial_offset);
     } else if (args.task == "pcon") {
+      //const d=args;
+      const trial_num = (args.trial_index - trial_offset) / 4 - 3; // Factor out when the task started, and the multi-steps per actual trial
+      //console.log('TRIAL ', args.trial_index, trial_num);
+      if (trial_num == 1) {
+        // Should get triggered on the first actual data trial
+        //console.log('FIRST TRIAL');
+        stream_csv.write("Trial, CResp, Resp, Correct, RT\n");
+      }
+      if (typeof args.cresp !== "undefined") {
+        // actual data trial
+        //console.log ('DATA TRIAL', d.trial_index, (d.trial_index - trial_offset)/4-3, d.resp, d.response, trial_offset )
+        stream_csv.write(
+          trial_num +
+            ", " +
+            args.cresp +
+            ", " +
+            args.resp +
+            ", " +
+            args.correct +
+            ", " +
+            args.rt +
+            "\n"
+        );
+      }
+    } else if (args.task == "pairwise") {
       //const d=args;
       const trial_num = (args.trial_index - trial_offset) / 4 - 3; // Factor out when the task started, and the multi-steps per actual trial
       //console.log('TRIAL ', args.trial_index, trial_num);

@@ -279,6 +279,12 @@ function refresh_cont_trials() {
       ctx.restore();
     },
     on_load: function () {
+      const container = document.querySelector(".jspsych-content");
+      if (container) {
+        container.classList.add("cont-omst");
+        container.classList.remove("pcon-demos");
+        container.classList.remove("instructions");
+      }
       setupButtonListeners();
     },
 

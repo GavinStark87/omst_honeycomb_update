@@ -40,7 +40,7 @@ import { buildTimeline, jsPsychOptions } from "../../timelines/main";
 import { dataCalcFunction } from "../../trials/contOmst";
 import { pconDataCalcFunction } from "../../trials/pcon_demos";
 import { getFormattedDate } from "../../lib/utils";
-import { include_pcon } from "./Login";
+import { include_pcon , include_pairwise } from "./Login";
 
 //----------------------- 2 ----------------------
 //-------------------- JSPSYCH -------------------
@@ -66,11 +66,14 @@ function JsPsychExperiment({
     on_data_update: (data) => dataUpdateFunction(data),
     on_finish: (data) => {
       var pconsummary = null;
+      var pairwisesummary = null;
       if (include_pcon) {
         pconsummary = pconDataCalcFunction(data);
+      } else if (include_pairwise) {
+        pairwisesummary = pconDataCalcFunction(data);
       }
       const contsummary = dataCalcFunction(data);
-      const summary = { pconsummary, contsummary };
+      const summary = { pconsummary, pairwisesummary, contsummary };
       const end_date = getFormattedDate(new Date());
       dataUpdateFunction({ summary, end_date });
       const dataWithSummary = { ...data, summary, end_date };
@@ -124,13 +127,13 @@ function JsPsychExperiment({
       window.removeEventListener("keyup", handleKeyEvent, true);
       window.removeEventListener("keydown", handleKeyEvent, true);
       // Only end if the experiment is still running
-      if (jsPsych && typeof jsPsych.endExperiment === 'function') {
+      if (jsPsych && typeof jsPsych.endExperiment === "function") {
         try {
           // Check if experiment is actually running before ending
           if (jsPsych.data && jsPsych.data.get) {
             jsPsych.endExperiment("Ended Experiment");
           }
-        } catch (e) {
+        } catch {
           // Silently catch if already ended - this is expected behavior
           console.log("Experiment already ended");
         }

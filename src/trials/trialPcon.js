@@ -2,13 +2,14 @@
 //
 //   File: trialPcon.js               Folder: trials
 //
-//   Author: Craig Stark, Audrey Hempel
+//   Author: Craig Stark, Audrey Hempel, Gavin Stark
 //   --------------------
 //
 //   Changes:
 //        7/31/23 (AGH): initial convert from pcon.html into honeycomb
 //                       template
 //        8/11/23 (AGH): changed trial_txt to trial_text for consistency
+//        2/11/26 (GES): Modernized assets
 //
 //   --------------------
 //   This file contains the default options for the two variable
@@ -94,16 +95,12 @@ export function trialPcon(config, options) {
   // set default trial parameters for keyboard response
   const defaults = {
     responseType: jsPsychCanvasKeyboardResponse,
-    stimulusHeight: 400,
-    stimulusWidth: 400,
     choices: "NO_KEYS",
     trialDuration: 2000,
     responseEndsTrial: false,
     image: "", // image will be different for each
   };
   const {
-    stimulusHeight,
-    stimulusWidth,
     //choices,
     trialDuration,
     responseEndsTrial,
@@ -190,8 +187,6 @@ export function keyPconTrial(config, options) {
     data: "", // image and data will be different for each
   };
   const {
-    stimulusHeight,
-    stimulusWidth,
     //choices,
     prompt,
     stimulusDuration,
@@ -212,12 +207,6 @@ export function keyPconTrial(config, options) {
     trial_duration: trialDuration,
     response_ends_trial: responseEndsTrial,
     name: name,
-    on_load: () => {
-      $("#jspsych-image-keyboard-response-stimulus").addClass("image");
-      $("#jspsych-image-keyboard-response-stimulus").height(stimulusHeight);
-      $("#jspsych-image-keyboard-response-stimulus").width(stimulusWidth);
-      $("html").css("cursor", "none");
-    },
     on_finish: function (data) {
       // same = button 0 = 's'
       // different = button 1 = 'd'
@@ -251,8 +240,6 @@ export function buttonPconTrial(config, options) {
     data: "", // image and data will be different for each
   };
   const {
-    stimulusHeight,
-    stimulusWidth,
     //choices,
     prompt,
     stimulusDuration,

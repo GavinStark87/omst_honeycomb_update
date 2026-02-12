@@ -47,12 +47,14 @@ import {
   include_consent,
   include_demog,
   include_pcon,
+  include_pairwise,
   include_instr,
   include_feedback,
   exptBlock1,
   consent_login_data,
   demog_login_data,
   pcon_login_data,
+  pairwise_login_data,
   instr_login_data,
   cont_login_data,
 } from "../App/components/Login.jsx";
@@ -73,6 +75,18 @@ import {
   refresh_pcon_trials,
 } from "../trials/pcon_demos";
 import { pconBlock1 } from "../config/pcon_config";
+
+// pairwise
+import {
+  pairwise_preload,
+  pairwise_instr1_trial,
+  pairwise_demo1_trial,
+  pairwise_instr2_trial,
+  pairwise_demo2_trial,
+  pairwise_instr3_trial,
+  pairwise_end,
+  refresh_pairwise_trials,
+} from "../trials/pairwise_demos";
 
 // contomst
 import {
@@ -96,6 +110,7 @@ import { omst_preload, instr_trial, debrief_block, omst_feedback } from "../tria
 import { end_message } from "../trials/end";
 import testBlock from "./testBlock";
 import pconBlock from "./pconBlock";
+import pairwiseBlock from "./pairwiseBlock";
 
 //----------------------- 2 ----------------------
 //-------------------- OPTIONS -------------------
@@ -122,9 +137,11 @@ function buildTimeline(jsPsych, studyID, participantID) {
 
   refresh_instr_trials(jsPsych);
   refresh_pcon_trials();
+  refresh_pairwise_trials();
   console.log("include_consent:", include_consent);
   console.log("include_demog:", include_demog);
   console.log("include_pcon:", include_pcon); // ← Is this true?
+  console.log("include pairwise:", include_pairwise);
   console.log("include_instr:", include_instr);
   console.log("include_feedback:", include_feedback);
 
@@ -183,6 +200,29 @@ function buildTimeline(jsPsych, studyID, participantID) {
     data: { login_data: pcon_login_data },
   };
 
+  // conditional timeline if pairwise is included
+  var incl_pairwise = {
+    timeline: [
+      pairwise_preload,
+      pairwise_instr1_trial, // instructions and demos
+      pairwise_demo1_trial,
+      pairwise_instr2_trial,
+      pairwise_demo2_trial,
+      pairwise_instr3_trial,
+      pairwiseBlock(pconBlock1), // loop through test trials
+      pairwise_end, // ty message
+    ],
+    conditional_function: function () {
+      if (include_pairwise) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    // if this is the first included trial, add login options to data here
+    data: { login_data: pairwise_login_data },
+  };
+
   // conditional timeline if instructions are included
   var incl_instr = {
     timeline: [
@@ -229,6 +269,7 @@ function buildTimeline(jsPsych, studyID, participantID) {
     timeline: [
       incl_demog, // demographics form
       incl_pcon, // perceptual control task
+      incl_pairwise, // pairwise perceptual control task
       incl_instr, // instructions
 
       // continuous omst
