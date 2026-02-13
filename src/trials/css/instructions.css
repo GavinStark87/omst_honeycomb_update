@@ -64,6 +64,7 @@
   height: 100svh;
   width: 100svw;
   justify-content: space-around;
+  align-content: space-around;
 }
 
 .jspsych-content.ready.instructions {

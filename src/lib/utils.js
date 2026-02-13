@@ -886,11 +886,12 @@ function fitSideBySideToScreen(isMobile, isTablet, smallScreen, pairwise = false
   // grab 3 sections
   const canvasStimulusContainer = pairwise
     ? document.querySelector("#jspsych-canvas-stimulus")
-    : document.querySelector("#jspsych-canvas-button-response-stimulus");
+    : document.querySelector("#jspsych-canvas-button-response-stimulus") ||
+      document.querySelector("#jspsych-canvas-keyboard-response-stimulus");
   const buttonContainer = document.querySelector("#jspsych-canvas-button-response-btngroup");
   const promptContainer = document.querySelector(".prompt_text");
 
-  if (!canvasStimulusContainer || !buttonContainer) {
+  if (!canvasStimulusContainer) {
     console.warn("Side-by-side elements not found");
     return;
   }
@@ -900,7 +901,7 @@ function fitSideBySideToScreen(isMobile, isTablet, smallScreen, pairwise = false
 
   // Measure actual heights
   const canvasHeight = canvasStimulusContainer.offsetHeight;
-  const buttonHeight = buttonContainer.offsetHeight;
+  const buttonHeight = !buttonContainer ? 0 : buttonContainer.offsetHeight;
   const margin = isMobile ? 40 : pairwise && smallScreen ? 120 : 20;
 
   // Calculate remaining space for prompt
@@ -1053,12 +1054,12 @@ function fitIntroOutroToScreen(isMobile, isTablet, smallScreen) {
     document.querySelector(".jspsych-btn");
   const promptContainer = document.querySelector(".jspsych-content > p.prompt_text:not(.intro)");
 
-  if (!stimulusContainer || !buttonContainer) {
+  if (!stimulusContainer) {
     console.warn("Intro/outro elements not found");
     return;
   }
 
-  const buttonHeight = buttonContainer.offsetHeight;
+  const buttonHeight = !buttonContainer ? 0 : buttonContainer.offsetHeight;
   const margin = isMobile ? 60 : 80;
   const availableHeight = totalHeight - buttonHeight - margin;
   const stimulusAllocation = availableHeight * 0.9;
@@ -1150,130 +1151,6 @@ function fitIntroOutroToScreen(isMobile, isTablet, smallScreen) {
   }
 }
 
-function fitIntroOutroToScreenKeyboard(isMobile, isTablet, smallScreen) {
-  const container = document.querySelector(".jspsych-content");
-  if (!container) return;
-
-  const totalHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-
-  // Grab sections - keyboard response selectors
-  const stimulusContainer =
-    document.querySelector(".intro") ||
-    document.querySelector("#jspsych-html-keyboard-response-stimulus .prompt_text") ||
-    document.querySelector("#jspsych-html-keyboard-response-stimulus");
-
-  const promptContainer = document.querySelector(".jspsych-content > p.prompt_text:not(.intro)");
-
-  if (!stimulusContainer) {
-    console.warn("Intro/outro elements not found");
-    return;
-  }
-
-  // For keyboard trials, account for prompt height if it exists, otherwise use a margin
-  const promptHeight = promptContainer ? promptContainer.offsetHeight : 0;
-  const margin = isMobile ? 60 : 80;
-  const bottomSpace = Math.max(promptHeight, margin);
-  const availableHeight = totalHeight - bottomSpace - margin;
-
-  // If there's a prompt, split space; otherwise give it all to stimulus
-  const stimulusAllocation = promptContainer ? availableHeight * 0.85 : availableHeight * 0.95;
-  const promptAllocation = promptContainer ? availableHeight * 0.15 : 0;
-
-  console.log("Available space (keyboard):", {
-    totalHeight,
-    promptHeight,
-    margin,
-    bottomSpace,
-    availableHeight,
-    stimulusAllocation,
-    promptAllocation,
-  });
-
-  // Style STIMULUS
-  if (stimulusContainer) {
-    stimulusContainer.style.overflow = "visible"; // Critical for measurement
-    stimulusContainer.style.height = "auto"; // Let it size naturally
-    stimulusContainer.style.boxSizing = "border-box";
-    stimulusContainer.style.margin = "0 auto";
-    stimulusContainer.style.textAlign = "center";
-    stimulusContainer.style.padding = "20px";
-    stimulusContainer.style.maxWidth = isMobile ? "90%" : isTablet ? "90%" : "70%";
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        let minFontSize, maxFontSize;
-        if (isMobile) {
-          minFontSize = 32;
-          maxFontSize = 96;
-        } else if (isTablet) {
-          minFontSize = 36;
-          maxFontSize = 96;
-        } else if (smallScreen) {
-          minFontSize = 24;
-          maxFontSize = 56;
-        } else {
-          minFontSize = 32;
-          maxFontSize = 88;
-        }
-
-        const finalSize = fitTextToContainer(
-          stimulusContainer,
-          stimulusAllocation - 40,
-          minFontSize,
-          maxFontSize
-        );
-
-        console.log("Stimulus fitted to:", finalSize);
-
-        // Now apply final styling
-        stimulusContainer.style.height = stimulusAllocation + "px";
-        stimulusContainer.style.overflow = "hidden";
-      });
-    });
-  }
-
-  // Style prompt (keyboard instructions)
-  if (promptContainer && promptAllocation > 20) {
-    promptContainer.style.overflow = "visible";
-    promptContainer.style.height = "auto";
-    promptContainer.style.boxSizing = "border-box";
-    promptContainer.style.margin = "0 auto";
-    promptContainer.style.textAlign = "center";
-    promptContainer.style.padding = "10px 20px";
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        let minFontSize, maxFontSize;
-        if (isMobile) {
-          minFontSize = 24;
-          maxFontSize = 48;
-        } else if (isTablet) {
-          minFontSize = 28;
-          maxFontSize = 56;
-        } else if (smallScreen) {
-          minFontSize = 20;
-          maxFontSize = 56;
-        } else {
-          minFontSize = 32;
-          maxFontSize = 64;
-        }
-
-        fitTextToContainer(promptContainer, promptAllocation, minFontSize, maxFontSize);
-        container.classList.add("ready");
-        promptContainer.style.height = promptAllocation + "px";
-        promptContainer.style.overflow = "hidden";
-      });
-    });
-  } else if (!promptContainer) {
-    // No prompt, so mark as ready immediately after stimulus is fitted
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        container.classList.add("ready");
-      });
-    });
-  }
-}
-
 //----------------------- EXPORTS ----------------------
 export {
   beep,
@@ -1305,6 +1182,5 @@ export {
   fitSideBySideTrialToScreen,
   fitTextToContainer,
   fitIntroOutroToScreen,
-  fitIntroOutroToScreenKeyboard,
   roundRect,
 };

@@ -43,7 +43,7 @@ import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response"
 import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
 import jsPsychCanvasButtonResponse from "@jspsych/plugin-canvas-button-response";
 import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-response";
-//import jsPsychCategorizeImage from "@jspsych/plugin-categorize-image";
+import jsPsychCategorizeImage from "@jspsych/plugin-categorize-image";
 import jsPsychPreload from "@jspsych/plugin-preload";
 
 // importing unique plugins
@@ -355,219 +355,371 @@ function makeCategorizeTrial(
   incText,
   corText
 ) {
-  const trial_choices = [
-    `${lang.instructions.button.trial_choices.old}`,
-    `${lang.instructions.button.trial_choices.sim}`,
-    `${lang.instructions.button.trial_choices.new}`,
-  ];
-  console.log("choices:", trial_choices);
+  if (resp_mode == "button") {
+    return {
+      type: jsPsychCategorizeImageButtons,
+      stimulus: imgPath,
+      key_answer: keyAnswer,
+      button_answer: buttonAnswer,
+      choices: t_choices,
+      prompt: `
+        <div class="prompt-container">
+          <p class="prompt prompt_text ${lang}" style="font-weight: normal;">${promptText}</p>
+        </div>
+      `,
 
-  return {
-    type: jsPsychCategorizeImageButtons,
-    stimulus: imgPath,
-    key_answer: keyAnswer,
-    button_answer: buttonAnswer,
-    choices: trial_choices,
-    prompt: `
-      <div class="prompt-container">
-        <p class="prompt prompt_text ${lang}" style="font-weight: normal;">${promptText}</p>
-      </div>
-    `,
+      // Set feedback to empty - we'll handle it ourselves
+      incorrect_text: "",
+      correct_text: "",
 
-    // Set feedback to empty - we'll handle it ourselves
-    incorrect_text: "",
-    correct_text: "",
+      force_correct_button_press: true,
+      button_html: classicGraphics
+        ? ["1", "2", "3"].map(
+            (txt, i) => `
+        <div class="image-btn-wrapper">
+          <input type="image" 
+                src="/assets/blank_button.png"
+                class="image-btn"
+                data-choice="${i}"
+                data-correct="${i === buttonAnswer}">
+          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+            <text x="50%" y="50%">%choice%</text>
+          </svg>
+        </div>
+      `
+          )
+        : ["1", "2", "3"].map(
+            (txt, i) => `
+        <div class="image-btn-wrapper">
+          <input type="image" 
+                src="/assets/blank_${isMobile ? ["red", "blue", "green"][i] : ["red", "green", "blue"][i]}.png"
+                class="image-btn"
+                data-choice="${i}"
+                data-correct="${i === buttonAnswer}">
+          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+            <text class="text-stroke" x="50%" y="50%">%choice%</text>
+            <text class="text-fill" x="50%" y="50%">%choice%</text>
+          </svg>
+        </div>
+      `
+          ),
 
-    force_correct_button_press: true,
-    button_html: classicGraphics
-      ? ["1", "2", "3"].map(
-          (txt, i) => `
-      <div class="image-btn-wrapper">
-        <input type="image" 
-              src="/assets/blank_button.png"
-              class="image-btn"
-              data-choice="${i}"
-              data-correct="${i === buttonAnswer}">
-        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
-          <text x="50%" y="50%">%choice%</text>
-        </svg>
-      </div>
-    `
-        )
-      : ["1", "2", "3"].map(
-          (txt, i) => `
-      <div class="image-btn-wrapper">
-        <input type="image" 
-              src="/assets/blank_${isMobile ? ["red", "blue", "green"][i] : ["red", "green", "blue"][i]}.png"
-              class="image-btn"
-              data-choice="${i}"
-              data-correct="${i === buttonAnswer}">
-        <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
-          <text class="text-stroke" x="50%" y="50%">%choice%</text>
-          <text class="text-fill" x="50%" y="50%">%choice%</text>
-        </svg>
-      </div>
-    `
-        ),
-
-    on_load: function () {
-      requestAnimationFrame(() => {
-        fitTrialToScreen();
-      });
-
-      // Track state
-      let hasRespondedIncorrectly = false;
-      let isProcessingResponse = false;
-      const trialStartTime = performance.now();
-
-      const buttons = document.querySelectorAll(".image-btn");
-
-      // Custom feedback function that doesn't redraw
-      function showCustomFeedback(correct, text) {
-        const promptContainer = document.querySelector(".prompt-container");
-        if (!promptContainer) return;
-
-        // FIX: Remove the newlines and indentation that cause whitespace
-        promptContainer.innerHTML = `<p class="prompt prompt_text ${lang}" style="font-weight: normal; color: ${correct ? "green" : "red"};">${text}</p>`;
-
-        // FIT THE TEXT
+      on_load: function () {
         requestAnimationFrame(() => {
-          const promptText = promptContainer.querySelector(".prompt_text");
-          console.log("Pre if");
-          console.log(typeof fitTextToContainer);
-          if (promptText && typeof fitTextToContainer === "function") {
-            const containerHeight = promptContainer.offsetHeight;
-            let minFontSize, maxFontSize;
-            if (isMobile) {
-              minFontSize = 36;
-              maxFontSize = 96;
-            } else if (isTablet) {
-              minFontSize = 40;
-              maxFontSize = 80;
-            } else if (smallScreen) {
-              minFontSize = 32;
-              maxFontSize = 64;
-            } else {
-              // desktop
-              minFontSize = 32;
-              maxFontSize = 64;
-            }
-            console.log("Fitting prompt text");
-            fitTextToContainer(promptText, containerHeight - 20, minFontSize, maxFontSize);
-          }
+          fitTrialToScreen();
         });
-      }
 
-      // Clone buttons to strip their event listeners
-      buttons.forEach((btn) => {
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-      });
+        // Track state
+        let hasRespondedIncorrectly = false;
+        let isProcessingResponse = false;
+        const trialStartTime = performance.now();
 
-      // Add handlers to the clean buttons
-      const cleanButtons = document.querySelectorAll(".image-btn");
+        const buttons = document.querySelectorAll(".image-btn");
 
-      cleanButtons.forEach((btn) => {
-        btn.addEventListener(
-          "click",
-          function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+        // Custom feedback function that doesn't redraw
+        function showCustomFeedback(correct, text) {
+          const promptContainer = document.querySelector(".prompt-container");
+          if (!promptContainer) return;
 
-            // Prevent multiple simultaneous clicks
-            if (isProcessingResponse) {
-              return false;
+          // FIX: Remove the newlines and indentation that cause whitespace
+          promptContainer.innerHTML = `<p class="prompt prompt_text ${lang}" style="font-weight: normal; color: ${correct ? "green" : "red"};">${text}</p>`;
+
+          // FIT THE TEXT
+          requestAnimationFrame(() => {
+            const promptText = promptContainer.querySelector(".prompt_text");
+            console.log("Pre if");
+            console.log(typeof fitTextToContainer);
+            if (promptText && typeof fitTextToContainer === "function") {
+              const containerHeight = promptContainer.offsetHeight;
+              let minFontSize, maxFontSize;
+              if (isMobile) {
+                minFontSize = 36;
+                maxFontSize = 96;
+              } else if (isTablet) {
+                minFontSize = 40;
+                maxFontSize = 80;
+              } else if (smallScreen) {
+                minFontSize = 32;
+                maxFontSize = 64;
+              } else {
+                // desktop
+                minFontSize = 32;
+                maxFontSize = 64;
+              }
+              console.log("Fitting prompt text");
+              fitTextToContainer(promptText, containerHeight - 20, minFontSize, maxFontSize);
             }
+          });
+        }
 
-            const isCorrect = btn.dataset.correct === "true";
-            const choiceIndex = parseInt(btn.dataset.choice);
+        // Clone buttons to strip their event listeners
+        buttons.forEach((btn) => {
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+        });
 
-            // CASE 1: First click is incorrect
-            if (!hasRespondedIncorrectly && !isCorrect) {
-              isProcessingResponse = true;
-              hasRespondedIncorrectly = true;
+        // Add handlers to the clean buttons
+        const cleanButtons = document.querySelectorAll(".image-btn");
 
-              // Show incorrect feedback with proper sizing
-              showCustomFeedback(false, incText);
+        cleanButtons.forEach((btn) => {
+          btn.addEventListener(
+            "click",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
 
-              // Allow clicks again after feedback is shown
-              setTimeout(() => {
-                isProcessingResponse = false;
-              }, 100);
+              // Prevent multiple simultaneous clicks
+              if (isProcessingResponse) {
+                return false;
+              }
 
-              return false;
-            }
+              const isCorrect = btn.dataset.correct === "true";
+              const choiceIndex = parseInt(btn.dataset.choice);
 
-            // CASE 2: Already responded incorrectly, clicking another incorrect button
-            if (hasRespondedIncorrectly && !isCorrect) {
-              return false;
-            }
+              // CASE 1: First click is incorrect
+              if (!hasRespondedIncorrectly && !isCorrect) {
+                isProcessingResponse = true;
+                hasRespondedIncorrectly = true;
 
-            // CASE 3: Clicking correct button (either first try or after incorrect)
-            if (isCorrect) {
-              isProcessingResponse = true;
+                // Show incorrect feedback with proper sizing
+                showCustomFeedback(false, incText);
 
-              // Show correct feedback
-              showCustomFeedback(true, corText);
+                // Allow clicks again after feedback is shown
+                setTimeout(() => {
+                  isProcessingResponse = false;
+                }, 100);
 
-              // Wait a moment, then end trial
-              setTimeout(() => {
-                // Clean up event listeners
-                cleanupButtonListeners();
+                return false;
+              }
 
-                // Finish trial with jsPsych
-                const rt = performance.now() - trialStartTime;
-                jsPsych.finishTrial({
-                  stimulus: imgPath,
-                  response: choiceIndex,
-                  correct: !hasRespondedIncorrectly, // Only correct if they got it on first try
-                  rt: rt,
-                  button_answer: buttonAnswer,
-                  got_it_wrong_first: hasRespondedIncorrectly,
-                });
-              }, 1500); // Show correct feedback for 1.5 seconds
+              // CASE 2: Already responded incorrectly, clicking another incorrect button
+              if (hasRespondedIncorrectly && !isCorrect) {
+                return false;
+              }
 
-              return false;
-            }
+              // CASE 3: Clicking correct button (either first try or after incorrect)
+              if (isCorrect) {
+                isProcessingResponse = true;
+
+                // Show correct feedback
+                showCustomFeedback(true, corText);
+
+                // Wait a moment, then end trial
+                setTimeout(() => {
+                  // Clean up event listeners
+                  cleanupButtonListeners();
+
+                  // Finish trial with jsPsych
+                  const rt = performance.now() - trialStartTime;
+                  jsPsych.finishTrial({
+                    stimulus: imgPath,
+                    response: choiceIndex,
+                    correct: !hasRespondedIncorrectly, // Only correct if they got it on first try
+                    rt: rt,
+                    button_answer: buttonAnswer,
+                    got_it_wrong_first: hasRespondedIncorrectly,
+                  });
+                }, 1500); // Show correct feedback for 1.5 seconds
+
+                return false;
+              }
+            },
+            true
+          ); // Use capture phase
+        });
+
+        // Prevent jsPsych from interfering
+        // Override innerHTML setter on the display element to block redraws
+        const displayElement = document.querySelector(".jspsych-content");
+        const originalInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(
+          Element.prototype,
+          "innerHTML"
+        );
+
+        Object.defineProperty(displayElement, "innerHTML", {
+          set: function () {
+            // Block any attempts to redraw after initial load
+            console.log("🛑 Blocked jsPsych redraw attempt");
+            return;
           },
-          true
-        ); // Use capture phase
-      });
+          get: function () {
+            return originalInnerHTMLDescriptor.get.call(this);
+          },
+          configurable: true,
+        });
 
-      // Prevent jsPsych from interfering
-      // Override innerHTML setter on the display element to block redraws
-      const displayElement = document.querySelector(".jspsych-content");
-      const originalInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(
-        Element.prototype,
-        "innerHTML"
-      );
+        setupButtonListeners();
+      },
 
-      Object.defineProperty(displayElement, "innerHTML", {
-        set: function () {
-          // Block any attempts to redraw after initial load
-          console.log("🛑 Blocked jsPsych redraw attempt");
-          return;
-        },
-        get: function () {
-          return originalInnerHTMLDescriptor.get.call(this);
-        },
-        configurable: true,
-      });
+      on_finish: function () {
+        // Restore innerHTML setter
+        const displayElement = document.querySelector(".jspsych-content");
+        if (displayElement) {
+          delete displayElement.innerHTML;
+        }
 
-      setupButtonListeners();
-    },
+        cleanupButtonListeners();
+      },
+    };
+  } else {
+    return {
+      type: jsPsychCategorizeImage, // Keyboard version
+      stimulus: imgPath,
+      key_answer: keyAnswer,
+      choices: "NO_KEYS",
+      prompt: `
+        <div class="prompt-container">
+          <p class="prompt prompt_text ${lang}" style="font-weight: normal;">${promptText}</p>
+        </div>
+      `,
 
-    on_finish: function () {
-      // Restore innerHTML setter
-      const displayElement = document.querySelector(".jspsych-content");
-      if (displayElement) {
-        delete displayElement.innerHTML;
-      }
+      // Set feedback to empty - we'll handle it ourselves
+      incorrect_text: "",
+      correct_text: "",
 
-      cleanupButtonListeners();
-    },
-  };
+      force_correct_key_press: true,
+
+      on_load: function () {
+        requestAnimationFrame(() => {
+          fitTrialToScreen();
+        });
+
+        // Track state
+        let hasRespondedIncorrectly = false;
+        let isProcessingResponse = false;
+        const trialStartTime = performance.now();
+
+        // Custom feedback function
+        function showCustomFeedback(correct, text) {
+          const promptContainer = document.querySelector(".prompt-container");
+          if (!promptContainer) return;
+
+          promptContainer.innerHTML = `<p class="prompt prompt_text ${lang}" style="font-weight: normal; color: ${correct ? "green" : "red"};">${text}</p>`;
+
+          // FIT THE TEXT
+          requestAnimationFrame(() => {
+            const promptText = promptContainer.querySelector(".prompt_text");
+            if (promptText && typeof fitTextToContainer === "function") {
+              const containerHeight = promptContainer.offsetHeight;
+              let minFontSize, maxFontSize;
+              if (isMobile) {
+                minFontSize = 36;
+                maxFontSize = 96;
+              } else if (isTablet) {
+                minFontSize = 40;
+                maxFontSize = 80;
+              } else if (smallScreen) {
+                minFontSize = 32;
+                maxFontSize = 64;
+              } else {
+                minFontSize = 32;
+                maxFontSize = 64;
+              }
+              fitTextToContainer(promptText, containerHeight - 20, minFontSize, maxFontSize);
+            }
+          });
+        }
+
+        // Keyboard event handler
+        const handleKeyPress = function (e) {
+          // Prevent multiple simultaneous responses
+          if (isProcessingResponse) {
+            e.preventDefault();
+            return;
+          }
+
+          const pressedKey = e.key.toLowerCase();
+
+          // Check if it's a valid choice
+          if (!t_choices.includes(pressedKey)) {
+            return;
+          }
+
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          const isCorrect = pressedKey === keyAnswer;
+          console.log("Correct, pressed, cor_key: ", isCorrect, pressedKey, keyAnswer);
+          // CASE 1: First response is incorrect
+          if (!hasRespondedIncorrectly && !isCorrect) {
+            isProcessingResponse = true;
+            hasRespondedIncorrectly = true;
+
+            // Show incorrect feedback
+            showCustomFeedback(false, incText);
+
+            // Allow responses again after feedback is shown
+            setTimeout(() => {
+              isProcessingResponse = false;
+            }, 100);
+
+            return;
+          }
+
+          // CASE 2: Already responded incorrectly, pressing another incorrect key
+          if (hasRespondedIncorrectly && !isCorrect) {
+            return;
+          }
+
+          // CASE 3: Pressing correct key (either first try or after incorrect)
+          if (isCorrect) {
+            console.log("CORRECT");
+            isProcessingResponse = true;
+
+            // Show correct feedback
+            showCustomFeedback(true, corText);
+
+            // Remove keyboard listener
+            document.removeEventListener("keydown", handleKeyPress, true);
+
+            // Wait a moment, then end trial
+            setTimeout(() => {
+              const rt = performance.now() - trialStartTime;
+              jsPsych.finishTrial({
+                stimulus: imgPath,
+                response: pressedKey,
+                correct: !hasRespondedIncorrectly,
+                rt: rt,
+                key_answer: keyAnswer,
+                got_it_wrong_first: hasRespondedIncorrectly,
+              });
+            }, 1500);
+          }
+        };
+
+        // Add keyboard listener
+        document.addEventListener("keydown", handleKeyPress, true);
+
+        // Block jsPsych redraws
+        const displayElement = document.querySelector(".jspsych-content");
+        const originalInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(
+          Element.prototype,
+          "innerHTML"
+        );
+
+        Object.defineProperty(displayElement, "innerHTML", {
+          set: function () {
+            console.log("🛑 Blocked jsPsych redraw attempt");
+            return;
+          },
+          get: function () {
+            return originalInnerHTMLDescriptor.get.call(this);
+          },
+          configurable: true,
+        });
+      },
+
+      on_finish: function () {
+        console.log("KEY ANSWER: ", keyAnswer);
+        // Restore innerHTML setter
+        const displayElement = document.querySelector(".jspsych-content");
+        if (displayElement) {
+          delete displayElement.innerHTML;
+        }
+      },
+    };
+  }
 }
 
 function makeSideBySideTrial(imgLeft, imgRight, promptText, buttonLabel) {
@@ -792,8 +944,8 @@ function refresh_instr_trials(jsPsych) {
   new1 = makeCategorizeTrial(
     jsPsych,
     "assets/foil_1032_border.png",
-    lang.instructions.key.trial_choices.new,
     trial_choices(),
+    lang.instructions.key.trial_choices.new,
     2,
     prompt_new(),
     inc_new(),
@@ -818,8 +970,8 @@ function refresh_instr_trials(jsPsych) {
   new2 = makeCategorizeTrial(
     jsPsych,
     "assets/foil_1033_border.png",
-    lang.instructions.key.trial_choices.new,
     trial_choices(),
+    lang.instructions.key.trial_choices.new,
     2,
     prompt_new(),
     inc_new(),
@@ -829,8 +981,8 @@ function refresh_instr_trials(jsPsych) {
   new3 = makeCategorizeTrial(
     jsPsych,
     "assets/pcon026a_border.png",
-    lang.instructions.key.trial_choices.new,
     trial_choices(),
+    lang.instructions.key.trial_choices.new,
     2,
     prompt_new(),
     inc_new(),
@@ -840,8 +992,8 @@ function refresh_instr_trials(jsPsych) {
   repeat1 = makeCategorizeTrial(
     jsPsych,
     "assets/foil_1033_border.png",
-    lang.instructions.key.trial_choices.old,
     trial_choices(),
+    lang.instructions.key.trial_choices.old,
     0,
     prompt_rep(),
     inc_rep(),
@@ -851,8 +1003,8 @@ function refresh_instr_trials(jsPsych) {
   lure1 = makeCategorizeTrial(
     jsPsych,
     "assets/pcon026b_border.png",
-    lang.instructions.key.trial_choices.sim,
     trial_choices(),
+    lang.instructions.key.trial_choices.sim,
     1,
     prompt_lure(),
     inc_lure(),
@@ -877,8 +1029,8 @@ function refresh_instr_trials(jsPsych) {
   new4 = makeCategorizeTrial(
     jsPsych,
     "assets/foil_1035_border.png",
-    lang.instructions.key.trial_choices.new,
     trial_choices(),
+    lang.instructions.key.trial_choices.new,
     2,
     prompt_test(),
     inc_new(),
@@ -888,8 +1040,8 @@ function refresh_instr_trials(jsPsych) {
   new5 = makeCategorizeTrial(
     jsPsych,
     "assets/pcon028a_border.png",
-    lang.instructions.key.trial_choices.new,
     trial_choices(),
+    lang.instructions.key.trial_choices.new,
     2,
     prompt_test(),
     inc_new(),
@@ -899,8 +1051,8 @@ function refresh_instr_trials(jsPsych) {
   repeat2 = makeCategorizeTrial(
     jsPsych,
     "assets/pcon026a_border.png",
-    lang.instructions.key.trial_choices.old,
     trial_choices(),
+    lang.instructions.key.trial_choices.old,
     0,
     prompt_test(),
     inc_rep(),
@@ -910,8 +1062,8 @@ function refresh_instr_trials(jsPsych) {
   lure2 = makeCategorizeTrial(
     jsPsych,
     "assets/pcon028b_border.png",
-    lang.instructions.key.trial_choices.sim,
     trial_choices(),
+    lang.instructions.key.trial_choices.sim,
     1,
     prompt_test(),
     inc_lure(),

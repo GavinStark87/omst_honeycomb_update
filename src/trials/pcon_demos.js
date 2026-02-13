@@ -60,6 +60,14 @@ var noise_sequence = [
   images["noise_5.png"],
 ];
 
+var trial_text = function () {
+  if (resp_mode == "button") {
+    return lang.pcon.button.trial_txt;
+  } else {
+    return lang.pcon.key.trial_txt;
+  }
+};
+
 var instr_choice = function () {
   if (resp_mode == "button") {
     return [lang.pcon.button.instr_choice];
@@ -480,6 +488,10 @@ function refresh_pcon_trials() {
           };
           stimImg.src = stimPath;
         },
+        prompt: function () {
+          const text = trial_text();
+          return `<p class="prompt_text">${text}</p>`;
+        },
         choices: trial_choices(),
         //stimulus_duration: 2000,
         canvas_size: [canvasHeight * 0.95, canvasWidth],
@@ -738,6 +750,10 @@ function refresh_pcon_trials() {
         choices: trial_choices(),
         //stimulus_duration: 2000,
         canvas_size: [canvasHeight * 0.95, canvasWidth],
+        prompt: function () {
+          const text = trial_text();
+          return `<p class="prompt_text">${text}</p>`;
+        },
         trial_duration: null,
         response_ends_trial: true,
         margin_horizontal: "40px",

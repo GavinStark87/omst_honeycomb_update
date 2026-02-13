@@ -32,7 +32,6 @@ import {
   roundRect,
   calculateSideBySideCanvasSize,
   getDeviceType,
-  fitIntroOutroToScreenKeyboard,
 } from "../lib/utils";
 
 import "./css/pcon_demos.css";
@@ -635,9 +634,7 @@ function refresh_pairwise_trials() {
         </div>`,
     on_load: function () {
       requestAnimationFrame(() => {
-        resp_mode == "button"
-          ? fitIntroOutroToScreen(isMobile, isTablet, smallScreen)
-          : fitIntroOutroToScreenKeyboard(isMobile, isTablet, smallScreen);
+        fitIntroOutroToScreen(isMobile, isTablet, smallScreen);
       });
 
       setupButtonListeners();

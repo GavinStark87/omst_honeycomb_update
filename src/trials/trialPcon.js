@@ -174,11 +174,9 @@ export function trialPcon(config, options) {
 export function keyPconTrial(config, options) {
   // set default trial parameters for keyboard response
   const defaults = {
-    type: jsPsychImageKeyboardResponse,
-    stimulusHeight: 400,
-    stimulusWidth: 400,
+    type: jsPsychCanvasKeyboardResponse,
     choices: trial_choices,
-    prompt: trial_prompt,
+    prompt: trial_prompt(),
     stimulusDuration: 2000,
     trialDuration: null,
     responseEndsTrial: true,
@@ -199,11 +197,65 @@ export function keyPconTrial(config, options) {
 
   // return defaults
   return {
-    type: jsPsychImageKeyboardResponse,
-    stimulus: image,
+    type: jsPsychCanvasKeyboardResponse,
+    stimulus: function (c) {
+      const ctx = c.getContext("2d");
+      const width = c.width;
+      const height = c.height;
+      const stimImg = new Image();
+      const stimPath = image();
+      const framePadding = 20;
+      const radius = 25;
+
+      stimImg.onload = function () {
+        const imgWidth = isMobile
+          ? stimImg.width * 1.5
+          : isTablet
+            ? stimImg.width * 1.2
+            : smallScreen
+              ? canvasHeight * 0.8
+              : stimImg.width * 1.2;
+        const imgHeight = isMobile
+          ? stimImg.height * 1.5
+          : isTablet
+            ? stimImg.height * 1.2
+            : smallScreen
+              ? canvasHeight * 0.8
+              : stimImg.height * 1.2;
+        const x = (width - imgWidth) / 2;
+        const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#5d2514";
+        ctx.lineWidth = 15;
+        if (!classicGraphics) {
+          console.log("drawing rounded rectangle with params:", {
+            x: x - framePadding,
+            y: y - framePadding,
+            width: imgWidth + 2 * framePadding,
+            height: imgHeight + 2 * framePadding,
+            radius: radius,
+          });
+          roundRect(
+            ctx,
+            x - framePadding,
+            y - framePadding,
+            imgWidth + 2 * framePadding,
+            imgHeight + 2 * framePadding,
+            radius
+          );
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        ctx.drawImage(stimImg, x, y, imgWidth, imgHeight);
+      };
+      stimImg.src = stimPath;
+    },
     choices: trial_choices,
-    prompt: prompt,
+    prompt: `<p class="prompt_text">${prompt}</p>`,
     stimulus_duration: stimulusDuration,
+    canvas_size: [canvasHeight * 0.95, canvasWidth],
     trial_duration: trialDuration,
     response_ends_trial: responseEndsTrial,
     name: name,
