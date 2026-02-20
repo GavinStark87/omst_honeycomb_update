@@ -48,7 +48,7 @@ import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-respo
 
 import "./css/contOmst.css";
 
-import { twochoice, lang, resp_mode } from "../App/components/Login";
+import { twochoice, lang, resp_mode, classic_graphics } from "../App/components/Login";
 
 import {
   invNormcdf,
@@ -56,6 +56,7 @@ import {
   cleanupButtonListeners,
   getDeviceType,
   drawHTMLText,
+  images,
 } from "../lib/utils";
 
 // <script>
@@ -135,14 +136,40 @@ import {
 //---------------- HELPER METHODS ----------------
 // helper methods that setup prompts and response options based on keyboard/button and 2/3 choices
 
+const preload_fnames = [];
+
+preload_fnames.push(
+  "./assets/blank_blue.png",
+  "./assets/blank_blue_pressed.png",
+  "./assets/blank_green.png",
+  "./assets/blank_green_pressed.png",
+  "./assets/blank_red.png",
+  "./assets/blank_red_pressed.png",
+  "./assets/brain.png",
+  "./assets/images/Set1_rs/080a.jpg",
+  ...Array.from({ length: 11 }, (_, i) => `./assets/star${i}.png`)
+);
+
 var omst_preload = {
   type: jsPsychPreload,
+  images: preload_fnames,
+  show_progress_bar: true,
+  show_detailed_erros: true,
+  continue_after_error: true,
   auto_preload: true,
   on_load: function () {
     const container = document.querySelector(".jspsych-content");
     if (container) {
       container.classList.add("cont-omst");
     }
+    assignVars();
+  },
+  on_error: function (fname) {
+    console.log("FAILED  " + fname);
+  },
+  on_finish: function (data) {
+    console.log("Preload success? " + data.success);
+    console.log("Failed on " + data.failed_images.length);
   },
 };
 
@@ -181,32 +208,25 @@ var instr_stim = function () {
 //----------------------- 3 ----------------------
 //--------------------CONSTANTS--------------------
 
-const device = getDeviceType();
-console.log("have device " + device);
-const isMobile = device[0];
-const isTablet = device[1];
-const smallScreen = device[2];
-console.log("smallScreen " + smallScreen);
-const canvasWidth = isMobile
-  ? stars_12
-    ? window.innerWidth * 1
-    : window.innerWidth * 0.9
-  : isTablet
-    ? stars_12
-      ? window.innerWidth * 1
-      : window.innerWidth * 0.9
-    : window.innerWidth * 0.9;
-const canvasHeight = isMobile
-  ? window.innerHeight * 0.65
-  : smallScreen
-    ? window.innerHeight * 0.75
-    : isTablet
-      ? window.innerHeight * 0.8
-      : window.innerHeight * 0.7;
-//const fontScale = isMobile ? 1.5 : 1.0;
-//const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;
-const classicGraphics = false; // for now
-const stars_12 = true; // for now
+let device = {};
+let smallScreen = {};
+let canvasWidth = {};
+let canvasHeight = {};
+let classicGraphics = {};
+
+function assignVars() {
+  device = getDeviceType();
+  smallScreen = device[2];
+  canvasWidth = window.innerWidth * 0.9;
+  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
+  console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
+  classicGraphics = classic_graphics;
+  if (classicGraphics) {
+    document.body.classList.add("classic");
+  }
+  console.log("classicGraphics " + classicGraphics);
+}
 
 //----------------------- 4 ----------------------
 //--------------------- TRIALS -------------------
@@ -216,22 +236,29 @@ const stars_12 = true; // for now
 var instr_trial = {};
 
 function refresh_cont_trials() {
+  assignVars();
   instr_trial = {
     type: resp_mode == "button" ? jsPsychCanvasButtonResponse : jsPsychCanvasKeyboardResponse,
     choices: instr_choice,
     prompt: instr_prompt(),
     margin_horizontal: "40px",
     margin_vertical: "20px",
-    canvas_size: isMobile
-      ? [canvasHeight * 0.8, canvasWidth]
-      : isTablet
-        ? [canvasHeight * 0.8, canvasWidth]
-        : smallScreen
-          ? [canvasHeight * 0.6, canvasWidth]
-          : [canvasHeight * 0.65, canvasWidth],
-    button_html: `
+    canvas_size: smallScreen
+      ? [canvasHeight * 0.6, canvasWidth]
+      : [canvasHeight * 0.65, canvasWidth],
+    button_html: classicGraphics
+      ? `
         <div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_green.png"
+          <input type="image" src="./assets/blank_button.png"
+                class="image-btn" style="">
+          <svg class="image-btn-text" viewBox="0 0 266 160">
+            <text x="50%" y="50%">%choice%</text>
+          </svg>
+        </div>
+      `
+      : `
+        <div class="image-btn-wrapper">
+          <input type="image" src="./assets/blank_green.png"
                 class="image-btn" style="">
           <svg class="image-btn-text" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>
@@ -249,36 +276,21 @@ function refresh_cont_trials() {
       const stimHTML = instr_stim();
 
       // Background
-      ctx.fillStyle = "#fff9e0";
+      ctx.fillStyle = classicGraphics ? "#ffffff" : "#fff9e0";
       ctx.fillRect(0, 0, width, height);
 
       ctx.save();
 
-      if (isMobile) {
-        if (["kr", "nl", "ru"].includes(lang)) {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
-        } else if (["cn", "es"].includes(lang)) {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 84, device, classicGraphics);
-        } else {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 96, device, classicGraphics);
-        }
-      } else if (isTablet) {
-        if (["kr", "nl", "ru"].includes(lang)) {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.1, 64, device, classicGraphics);
-        } else {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.1, 64, device, classicGraphics);
-        }
+      if (["kr", "nl", "ru"].includes(lang)) {
+        drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
       } else {
-        if (["kr", "nl", "ru"].includes(lang)) {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
-        } else {
-          drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
-        }
+        drawHTMLText(ctx, stimHTML, canvasWidth / 2, height * 0.2, 64, device, classicGraphics);
       }
 
       ctx.restore();
     },
     on_load: function () {
+      console.log("Canvas Size", canvasWidth, canvasHeight * 0.65);
       const container = document.querySelector(".jspsych-content");
       if (container) {
         container.classList.add("cont-omst");
@@ -378,9 +390,19 @@ const omst_feedback = (jsPsych) => ({
     //console.log(txtx)
     ctx.fillText(ldi.toString(), xPos - ctx.measureText(ldi.toString()).width / 2, 18);
   },
-  button_html: `
+  button_html: classicGraphics
+    ? `
         <div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_green.png"
+          <input type="image" src="./assets/blank_button.png"
+                class="image-btn" style="">
+          <svg class="image-btn-text" viewBox="0 0 266 160">
+            <text x="50%" y="50%">%choice%</text>
+          </svg>
+        </div>
+      `
+    : `
+        <div class="image-btn-wrapper">
+          <input type="image" src="./assets/blank_green.png"
                 class="image-btn" style="">
           <svg class="image-btn-text" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>

@@ -30,7 +30,7 @@ import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-respo
 import $ from "jquery";
 
 //import { resp_mode } from '../trials/selectRespType';
-import { lang, resp_mode } from "../App/components/Login";
+import { lang, resp_mode, classic_graphics } from "../App/components/Login";
 import {
   getDeviceType,
   roundRect,
@@ -60,29 +60,25 @@ var trial_choices = function () {
 };
 //----------------------- 3 ----------------------
 //-------------------- CONSTANTS ------------------
-const device = getDeviceType();
-console.log("have device " + device);
-const isMobile = device[0];
-const isTablet = device[1];
-const smallScreen = device[2];
-const canvasWidth = isMobile
-  ? stars_12
-    ? window.innerWidth * 1
-    : window.innerWidth * 0.9
-  : isTablet
-    ? stars_12
-      ? window.innerWidth * 1
-      : window.innerWidth * 0.9
-    : window.innerWidth * 0.9;
-const canvasHeight = isMobile
-  ? window.innerHeight * 0.65
-  : smallScreen
-    ? window.innerHeight * 0.75
-    : isTablet
-      ? window.innerHeight * 0.8
-      : window.innerHeight * 0.7;
-const classicGraphics = false; // for now
-const stars_12 = true; // for now
+let device = {};
+let smallScreen = {};
+let canvasWidth = {};
+let canvasHeight = {};
+let classicGraphics = {};
+
+function assignVars() {
+  device = getDeviceType();
+  smallScreen = device[2];
+  canvasWidth = window.innerWidth * 0.9;
+  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
+  console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
+  classicGraphics = classic_graphics;
+  if (classicGraphics) {
+    document.body.classList.add("classic");
+  }
+  console.log("classicGraphics " + classicGraphics);
+}
 
 //----------------------- 4 ----------------------
 //-------------------- TRIALS --------------------
@@ -92,6 +88,7 @@ const stars_12 = true; // for now
 // image is the only param that changes
 
 export function trialPcon(config, options) {
+  assignVars();
   // set default trial parameters for keyboard response
   const defaults = {
     responseType: jsPsychCanvasKeyboardResponse,
@@ -121,22 +118,10 @@ export function trialPcon(config, options) {
       const radius = 25;
 
       stimImg.onload = function () {
-        const imgWidth = isMobile
-          ? stimImg.width * 1.5
-          : isTablet
-            ? stimImg.width * 1.2
-            : smallScreen
-              ? canvasHeight * 0.8
-              : stimImg.width * 1.2;
-        const imgHeight = isMobile
-          ? stimImg.height * 1.5
-          : isTablet
-            ? stimImg.height * 1.2
-            : smallScreen
-              ? canvasHeight * 0.8
-              : stimImg.height * 1.2;
+        const imgWidth = smallScreen ? canvasHeight * 0.8 : stimImg.width * 1.2;
+        const imgHeight = smallScreen ? canvasHeight * 0.8 : stimImg.height * 1.2;
         const x = (width - imgWidth) / 2;
-        const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+        const y = (height - imgHeight) / 2;
 
         ctx.fillStyle = "#ffffff";
         ctx.strokeStyle = "#5d2514";
@@ -208,22 +193,10 @@ export function keyPconTrial(config, options) {
       const radius = 25;
 
       stimImg.onload = function () {
-        const imgWidth = isMobile
-          ? stimImg.width * 1.5
-          : isTablet
-            ? stimImg.width * 1.2
-            : smallScreen
-              ? canvasHeight * 0.8
-              : stimImg.width * 1.2;
-        const imgHeight = isMobile
-          ? stimImg.height * 1.5
-          : isTablet
-            ? stimImg.height * 1.2
-            : smallScreen
-              ? canvasHeight * 0.8
-              : stimImg.height * 1.2;
+        const imgWidth = smallScreen ? canvasHeight * 0.8 : stimImg.width * 1.2;
+        const imgHeight = smallScreen ? canvasHeight * 0.8 : stimImg.height * 1.2;
         const x = (width - imgWidth) / 2;
-        const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+        const y = (height - imgHeight) / 2; // shift up slightly
 
         ctx.fillStyle = "#ffffff";
         ctx.strokeStyle = "#5d2514";
@@ -315,22 +288,10 @@ export function buttonPconTrial(config, options) {
       const radius = 25;
 
       stimImg.onload = function () {
-        const imgWidth = isMobile
-          ? stimImg.width * 1.5
-          : isTablet
-            ? stimImg.width * 1.2
-            : smallScreen
-              ? canvasHeight * 0.8
-              : stimImg.width * 1.2;
-        const imgHeight = isMobile
-          ? stimImg.height * 1.5
-          : isTablet
-            ? stimImg.height * 1.2
-            : smallScreen
-              ? canvasHeight * 0.8
-              : stimImg.height * 1.2;
+        const imgWidth = smallScreen ? canvasHeight * 0.8 : stimImg.width * 1.2;
+        const imgHeight = smallScreen ? canvasHeight * 0.8 : stimImg.height * 1.2;
         const x = (width - imgWidth) / 2;
-        const y = (height - imgHeight) / 2 - (isMobile ? 0 : 0); // shift up slightly
+        const y = (height - imgHeight) / 2;
 
         ctx.fillStyle = "#ffffff";
         ctx.strokeStyle = "#5d2514";
@@ -369,7 +330,7 @@ export function buttonPconTrial(config, options) {
     button_html: classicGraphics
       ? [
           `<div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_button.png"
+          <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
           <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text x="50%" y="50%">%choice%</text>
@@ -377,7 +338,7 @@ export function buttonPconTrial(config, options) {
         </div>`,
 
           `<div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_button.png"
+          <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
           <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text x="50%" y="50%">%choice%</text>
@@ -386,7 +347,7 @@ export function buttonPconTrial(config, options) {
         ]
       : [
           `<div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_green.png"
+          <input type="image" src="./assets/blank_green.png"
                 class="image-btn">
           <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>
@@ -395,7 +356,7 @@ export function buttonPconTrial(config, options) {
         </div>`,
 
           `<div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_blue.png"
+          <input type="image" src="./assets/blank_blue.png"
                 class="image-btn">
           <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>

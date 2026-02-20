@@ -25,9 +25,9 @@ import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response"
 import jsPsychAnimation from "@jspsych/plugin-animation";
 
 import { config } from "../config/main";
-import { images , getDeviceType } from "../lib/utils";
+import { images, getDeviceType } from "../lib/utils";
 
-import { lang, resp_mode } from "../App/components/Login";
+import { lang, resp_mode, classic_graphics } from "../App/components/Login";
 
 // default settings for a pcon test trial
 import { trialPcon, keyPconTrial, buttonPconTrial } from "../trials/trialPcon";
@@ -49,30 +49,25 @@ var noise_sequence = [
 ];
 //----------------------- 3 ----------------------
 //-------------------- CONSTANTS ------------------
-const device = getDeviceType();
-console.log("have device " + device);
-const isMobile = device[0];
-const isTablet = device[1];
-const smallScreen = device[2];
-console.log("smallScreen " + smallScreen);
-const canvasWidth = isMobile
-  ? stars_12
-    ? window.innerWidth * 1
-    : window.innerWidth * 0.9
-  : isTablet
-    ? stars_12
-      ? window.innerWidth * 1
-      : window.innerWidth * 0.9
-    : window.innerWidth * 0.9;
-const canvasHeight = isMobile
-  ? window.innerHeight * 0.65
-  : smallScreen
-    ? window.innerHeight * 0.75
-    : isTablet
-      ? window.innerHeight * 0.8
-      : window.innerHeight * 0.7;
-const classicGraphics = false; // for now
-const stars_12 = true; // for now
+let device = {};
+let smallScreen = {};
+let canvasWidth = {};
+let canvasHeight = {};
+let classicGraphics = {};
+
+function assignVars() {
+  device = getDeviceType();
+  smallScreen = device[2];
+  canvasWidth = window.innerWidth * 0.9;
+  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
+  console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
+  classicGraphics = classic_graphics;
+  if (classicGraphics) {
+    document.body.classList.add("classic");
+  }
+  console.log("classicGraphics " + classicGraphics);
+}
 
 //----------------------- 4 ----------------------
 //-------------------- TIMELINE ------------------
@@ -82,6 +77,7 @@ const stars_12 = true; // for now
 var timeline = [];
 
 const pconTrial = (blockSettings, blockDetails, tlv) => {
+  assignVars();
   // if keyboard response, load stimulus and data specifications for keyboard trials into timeline
   if (resp_mode == "keyboard") {
     timeline = [

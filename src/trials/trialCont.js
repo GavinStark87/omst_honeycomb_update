@@ -37,7 +37,7 @@ import jsPsychPreload from "@jspsych/plugin-preload";
 import $ from "jquery";
 
 //import { resp_mode } from '../trials/selectRespType';
-import { twochoice, selfpaced, lang, resp_mode } from "../App/components/Login";
+import { twochoice, selfpaced, lang, resp_mode, classic_graphics } from "../App/components/Login";
 import {
   setupButtonListeners,
   cleanupButtonListeners,
@@ -98,38 +98,34 @@ var trial_choices = function () {
 };
 
 //--------------------CONSTANTS--------------------
-const device = getDeviceType();
-console.log("have device " + device);
-const isMobile = device[0];
-const isTablet = device[1];
-const smallScreen = device[2];
-console.log("smallScreen " + smallScreen);
-const canvasWidth = isMobile
-  ? stars_12
-    ? window.innerWidth * 1
-    : window.innerWidth * 0.9
-  : isTablet
-    ? stars_12
-      ? window.innerWidth * 1
-      : window.innerWidth * 0.9
-    : window.innerWidth * 0.9;
-const canvasHeight = isMobile
-  ? window.innerHeight * 0.65
-  : smallScreen
-    ? window.innerHeight * 0.75
-    : isTablet
-      ? window.innerHeight * 0.8
-      : window.innerHeight * 0.7;
-const classicGraphics = false; // for now
+let device = {};
+let smallScreen = {};
+let canvasWidth = {};
+let canvasHeight = {};
+let classicGraphics = {};
+
+function assignVars() {
+  device = getDeviceType();
+  smallScreen = device[2];
+  canvasWidth = window.innerWidth * 0.9;
+  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
+  console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
+  classicGraphics = classic_graphics;
+  if (classicGraphics) {
+    document.body.classList.add("classic");
+  }
+  console.log("classicGraphics " + classicGraphics);
+}
 const stars_12 = true; // for now
 let num_correct = 0;
 
 const brain = new Image();
-brain.src = "/assets/brain.png";
+brain.src = "./assets/brain.png";
 
 const starImgs = Array.from({ length: 11 }, (_, i) => {
   let img = new Image();
-  img.src = `/assets/star${i}.png`;
+  img.src = `./assets/star${i}.png`;
   return img;
 });
 
@@ -139,15 +135,15 @@ const starImgs = Array.from({ length: 11 }, (_, i) => {
 const preload_fnames = [];
 
 preload_fnames.push(
-  "/assets/blank_blue.png",
-  "/assets/blank_blue_pressed.png",
-  "/assets/blank_green.png",
-  "/assets/blank_green_pressed.png",
-  "/assets/blank_red.png",
-  "/assets/blank_red_pressed.png",
-  "/assets/brain.png",
-  "/assets/images/Set1_rs/080a.jpg",
-  ...Array.from({ length: 11 }, (_, i) => `/assets/star${i}.png`)
+  "./assets/blank_blue.png",
+  "./assets/blank_blue_pressed.png",
+  "./assets/blank_green.png",
+  "./assets/blank_green_pressed.png",
+  "./assets/blank_red.png",
+  "./assets/blank_red_pressed.png",
+  "./assets/brain.png",
+  "./assets/images/Set1_rs/080a.jpg",
+  ...Array.from({ length: 11 }, (_, i) => `./assets/star${i}.png`)
 );
 
 var preload = {
@@ -198,6 +194,7 @@ export function keyContTrial(config, options) {
   } = { ...defaults, ...options };
 
   // return defaults
+  assignVars();
   return {
     type: jsPsychCanvasKeyboardResponse,
     stimulus: function (c) {
@@ -208,58 +205,26 @@ export function keyContTrial(config, options) {
       const stimPath = image();
       const totalStars = stars_12 ? 12 : 6;
       const maxFill = 10; // star1–star10
-      const starSize = isMobile
-        ? stars_12
-          ? Math.min(width, height) * 0.12
-          : Math.min(width, height) * 0.15
-        : isTablet && stars_12
-          ? Math.min(width, height) * 0.055
-          : isTablet
-            ? Math.min(width, height) * 0.12
-            : Math.min(width, height) * 0.15;
-      const spacing = isMobile
-        ? starSize * 0.15
-        : isTablet && stars_12
-          ? starSize * 0.1
-          : isTablet
-            ? starSize * 0.2
-            : starSize * 0.25;
+      const starSize = Math.min(width, height) * 0.15;
+      const spacing = starSize * 0.25;
       const framePadding = 20;
       const radius = 25;
-      const brainScale = isTablet ? 0.15 : smallScreen ? 0.15 : 0.2;
+      const brainScale = smallScreen ? 0.15 : 0.2;
 
       function drawScene() {
         // === Progress info (stars/brain) ===
         let textBounds;
         let promptFontSize;
 
-        if (isMobile) {
-          if (lang == "kr") promptFontSize = 52;
-          else if (lang == "ru" || lang == "nl") promptFontSize = 58;
-          else if (lang == "cn") promptFontSize = 70;
-          else promptFontSize = 70;
-        } else if (smallScreen) {
+        if (smallScreen) {
           if (lang == "nl" || lang == "ru") promptFontSize = 36;
           else if (lang == "kr") promptFontSize = 28;
           else promptFontSize = 40;
-        } else if (isTablet) {
-          if (lang == "kr") promptFontSize = 38;
-          else promptFontSize = 48;
         } else {
           promptFontSize = 42;
         }
 
-        const textStartY = isMobile
-          ? classicGraphics
-            ? height * 0.1
-            : stars_12
-              ? height * 0.05
-              : height * 0.2
-          : isTablet
-            ? height * 0.08
-            : smallScreen
-              ? height * 0.08
-              : height * 0.08;
+        const textStartY = smallScreen ? height * 0.08 : height * 0.08;
         textBounds = drawHTMLText(
           ctx,
           prompt,
@@ -284,21 +249,12 @@ export function keyContTrial(config, options) {
         console.log("textBounds:", textBounds);
 
         // *** CALCULATE AVAILABLE SPACE ***
-        const topMargin = isTablet ? 30 : 15; // Space below text (reduced for desktop/laptop)
+        const topMargin = 15;
         const bottomMargin = 30; // Space above buttons
         const imageTopY = textBounds.endY + topMargin;
         const availableHeight = height - imageTopY - bottomMargin;
         const progress = num_correct;
-
-        // For tablet: leave space for stars on left and brain on right
-        const leftReserved = isTablet && !classicGraphics ? starSize + 60 : 0;
-        const rightReserved = isTablet && !classicGraphics ? brain.width * brainScale + 60 : 0;
-        const availableWidth =
-          isTablet && !classicGraphics
-            ? width - leftReserved - rightReserved
-            : isMobile
-              ? width * 0.7
-              : width * 0.8; // Increased from 0.8 to 0.85
+        const availableWidth = width * 0.8;
 
         // *** SCALE IMAGE TO FIT AVAILABLE SPACE ***
         const imgAspectRatio = stimImg.width / stimImg.height;
@@ -318,10 +274,7 @@ export function keyContTrial(config, options) {
         }
 
         // *** POSITION IMAGE CENTERED IN AVAILABLE SPACE ***
-        const x =
-          isTablet && !classicGraphics
-            ? leftReserved + (availableWidth - scaledWidth) / 2
-            : (width - scaledWidth) / 2;
+        const x = (width - scaledWidth) / 2;
         const y = imageTopY + (availableHeight - scaledHeight - 2 * framePadding) / 2;
         console.log("Image position x:", x, "y:", y);
         console.log("canvas height: ", canvasHeight);
@@ -355,137 +308,52 @@ export function keyContTrial(config, options) {
         const fillLevel = step;
         const currentLevel = Math.min(fillLevel, 10);
 
-        if (!isMobile && !classicGraphics && !(isTablet && stars_12)) {
-          console.log("Drawing stars and brain for desktop");
-          const leftX = isTablet ? 20 : smallScreen ? 10 : 40;
-          const leftStartY = isTablet ? textBounds.endY + 25 : height * 0.25;
+        console.log("Drawing stars and brain for desktop");
+        const leftX = smallScreen ? 10 : 40;
+        const leftStartY = height * 0.25;
 
-          // draw full stars
-          for (let i = 0; i < fullStars; i++) {
-            const star = starImgs[10];
-            const posY = isTablet
-              ? leftStartY + i * (starSize + spacing)
-              : leftStartY + (i % (stars_12 ? 3 : 2)) * (starSize + spacing);
-            star.onload = function () {
-              if (isTablet) ctx.drawImage(star, leftX, posY, starSize, starSize);
-              else
-                ctx.drawImage(
-                  star,
-                  leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
-                  posY,
-                  starSize,
-                  starSize
-                );
-            };
-            if (star.complete) {
-              if (isTablet) ctx.drawImage(star, leftX, posY, starSize, starSize);
-              else
-                ctx.drawImage(
-                  star,
-                  leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
-                  posY,
-                  starSize,
-                  starSize
-                );
-            }
-          }
-
-          // draw current star
-          const currentStar = starImgs[currentLevel];
-          const activeStarScale = 1.75;
-          const activeStarSize = starSize * activeStarScale;
-          const brainW = brain.width * brainScale;
-          const brainH = brain.height * brainScale;
-          const brainX = width - brainW - (isTablet ? 20 : 60);
-          const brainY = isTablet ? textBounds.endY + 2 * activeStarSize : height * 0.55;
-
-          const starX = brainX + brainW / 2 - activeStarSize / 2;
-          const starY = brainY - activeStarSize * 1.2;
-
-          ctx.drawImage(brain, brainX, brainY, brainW, brainH);
-          currentStar.onload = function () {
-            ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
+        // draw full stars
+        for (let i = 0; i < fullStars; i++) {
+          const star = starImgs[10];
+          const posY = leftStartY + (i % (stars_12 ? 3 : 2)) * (starSize + spacing);
+          star.onload = function () {
+            ctx.drawImage(
+              star,
+              leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
+              posY,
+              starSize,
+              starSize
+            );
           };
-          if (currentStar.complete)
-            ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
-        } else if (isMobile && !classicGraphics && !stars_12) {
-          const leftX = 0;
-          const leftStartY = 20;
-          const currentStar = starImgs[currentLevel];
-          for (let i = 0; i < fullStars + 1 && i < totalStars; i++) {
-            const star = starImgs[10];
-            const posX = leftX + i * (starSize + spacing);
-            if (i < fullStars) {
-              star.onload = function () {
-                ctx.drawImage(star, posX, leftStartY, starSize, starSize);
-              };
-              if (star.complete) ctx.drawImage(star, posX, leftStartY, starSize, starSize);
-            } else {
-              currentStar.onload = function () {
-                ctx.drawImage(currentStar, posX, leftStartY, starSize, starSize);
-              };
-              if (currentStar.complete)
-                ctx.drawImage(currentStar, posX, leftStartY, starSize, starSize);
-            }
-          }
-        } else if ((isMobile || isTablet) && stars_12 && !classicGraphics) {
-          const leftX = isTablet ? canvasWidth * 0.03 : canvasWidth * 0.02; // X position for left column
-          const rightX = isTablet
-            ? starSize + canvasWidth * 0.15
-            : canvasWidth - starSize - canvasWidth * 0.02; // X position for right column (adjust as needed)
-          const startY = y - starSize / 2 - framePadding; // Top Y position
-          const currentStar = starImgs[currentLevel];
-          const starsPerColumn = isTablet ? 12 : 6;
-
-          for (let i = 0; i < fullStars + 1 && i < totalStars; i++) {
-            const star = starImgs[10];
-
-            // Determine which column (0 = left, 1 = right, etc.)
-            const column = Math.floor(i / starsPerColumn);
-
-            // Determine position within the column (0-5)
-            const rowInColumn = i % starsPerColumn;
-
-            // Set X position based on column
-            const posX = column === 0 ? leftX : rightX;
-
-            // Set Y position based on row in column (vertical spacing)
-            const posY = startY + rowInColumn * (starSize + spacing);
-
-            if (i < fullStars) {
-              star.onload = function () {
-                ctx.drawImage(star, posX, posY, starSize, starSize);
-              };
-              if (star.complete) ctx.drawImage(star, posX, posY, starSize, starSize);
-            } else if (isMobile) {
-              currentStar.onload = function () {
-                ctx.drawImage(currentStar, posX, posY, starSize, starSize);
-              };
-              if (currentStar.complete) ctx.drawImage(currentStar, posX, posY, starSize, starSize);
-            }
-          }
-
-          // Draw brain and active star on tablet
-          if (isTablet) {
-            const currentStar = starImgs[currentLevel];
-            const activeStarScale = 3;
-            const activeStarSize = starSize * activeStarScale;
-            const brainW = brain.width * brainScale;
-            const brainH = brain.height * brainScale;
-            const brainX = width - brainW - (isTablet ? 20 : 60);
-            const brainY = isTablet ? textBounds.endY + 2 * activeStarSize : height * 0.55;
-
-            const starX = brainX + brainW / 2 - activeStarSize / 2;
-            const starY = brainY - activeStarSize * 1.2;
-
-            ctx.drawImage(brain, brainX, brainY, brainW, brainH);
-            currentStar.onload = function () {
-              ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
-            };
-            if (currentStar.complete)
-              ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
+          if (star.complete) {
+            ctx.drawImage(
+              star,
+              leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
+              posY,
+              starSize,
+              starSize
+            );
           }
         }
+
+        // draw current star
+        const currentStar = starImgs[currentLevel];
+        const activeStarScale = 1.75;
+        const activeStarSize = starSize * activeStarScale;
+        const brainW = brain.width * brainScale;
+        const brainH = brain.height * brainScale;
+        const brainX = width - brainW - 60;
+        const brainY = height * 0.55;
+
+        const starX = brainX + brainW / 2 - activeStarSize / 2;
+        const starY = brainY - activeStarSize * 1.2;
+
+        ctx.drawImage(brain, brainX, brainY, brainW, brainH);
+        currentStar.onload = function () {
+          ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
+        };
+        if (currentStar.complete)
+          ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
       };
       stimImg.src = stimPath;
 
@@ -577,6 +445,7 @@ export function buttonContTrial(config, options) {
   } = { ...defaults, ...options };
 
   // return defaults
+  assignVars();
   return {
     type: jsPsychCanvasButtonResponse,
     stimulus: function (c) {
@@ -589,25 +458,11 @@ export function buttonContTrial(config, options) {
       console.log("Image value:", image);
       const totalStars = stars_12 ? 12 : 6;
       const maxFill = 10; // star1–star10
-      const starSize = isMobile
-        ? stars_12
-          ? Math.min(width, height) * 0.12
-          : Math.min(width, height) * 0.15
-        : isTablet && stars_12
-          ? Math.min(width, height) * 0.055
-          : isTablet
-            ? Math.min(width, height) * 0.12
-            : Math.min(width, height) * 0.15;
-      const spacing = isMobile
-        ? starSize * 0.15
-        : isTablet && stars_12
-          ? starSize * 0.1
-          : isTablet
-            ? starSize * 0.2
-            : starSize * 0.25;
+      const starSize = Math.min(width, height) * 0.15;
+      const spacing = starSize * 0.25;
       const framePadding = 20;
       const radius = 25;
-      const brainScale = isTablet ? 0.15 : smallScreen ? 0.15 : 0.2;
+      const brainScale = smallScreen ? 0.15 : 0.2;
 
       function drawScene() {
         // === Progress info (stars/brain) ===
@@ -615,33 +470,15 @@ export function buttonContTrial(config, options) {
         let textBounds;
         let promptFontSize;
 
-        if (isMobile) {
-          if (lang == "kr") promptFontSize = 52;
-          else if (lang == "ru" || lang == "nl") promptFontSize = 58;
-          else if (lang == "cn") promptFontSize = 70;
-          else promptFontSize = 70;
-        } else if (smallScreen) {
+        if (smallScreen) {
           if (lang == "nl" || lang == "ru") promptFontSize = 36;
           else if (lang == "kr") promptFontSize = 28;
           else promptFontSize = 40;
-        } else if (isTablet) {
-          if (lang == "kr") promptFontSize = 38;
-          else promptFontSize = 48;
         } else {
           promptFontSize = 42;
         }
 
-        const textStartY = isMobile
-          ? classicGraphics
-            ? height * 0.1
-            : stars_12
-              ? height * 0.05
-              : height * 0.2
-          : isTablet
-            ? height * 0.08
-            : smallScreen
-              ? height * 0.08
-              : height * 0.08;
+        const textStartY = smallScreen ? height * 0.08 : height * 0.08;
         textBounds = drawHTMLText(
           ctx,
           prompt,
@@ -666,7 +503,7 @@ export function buttonContTrial(config, options) {
         console.log("textBounds:", textBounds);
 
         // *** CALCULATE AVAILABLE SPACE ***
-        const topMargin = isTablet ? 30 : 15; // Space below text (reduced for desktop/laptop)
+        const topMargin = 15;
         const bottomMargin = 30; // Space above buttons
         const imageTopY = textBounds.endY + topMargin;
         const availableHeight = height - imageTopY - bottomMargin;
@@ -674,16 +511,7 @@ export function buttonContTrial(config, options) {
         console.log("textBounds.endY:", textBounds.endY);
         console.log("imageTopY:", imageTopY);
         console.log("availableHeight:", availableHeight);
-
-        // For tablet: leave space for stars on left and brain on right
-        const leftReserved = isTablet && !classicGraphics ? starSize + 60 : 0;
-        const rightReserved = isTablet && !classicGraphics ? brain.width * brainScale + 60 : 0;
-        const availableWidth =
-          isTablet && !classicGraphics
-            ? width - leftReserved - rightReserved
-            : isMobile
-              ? width * 0.7
-              : width * 0.8; // Increased from 0.8 to 0.85
+        const availableWidth = width * 0.8;
 
         // *** SCALE IMAGE TO FIT AVAILABLE SPACE ***
         const imgAspectRatio = stimImg.naturalWidth / stimImg.naturalHeight;
@@ -704,10 +532,7 @@ export function buttonContTrial(config, options) {
         }
 
         // *** POSITION IMAGE CENTERED IN AVAILABLE SPACE ***
-        const x =
-          isTablet && !classicGraphics
-            ? leftReserved + (availableWidth - scaledWidth) / 2
-            : (width - scaledWidth) / 2;
+        const x = (width - scaledWidth) / 2;
         const y = imageTopY + (availableHeight - scaledHeight - 2 * framePadding) / 2;
         console.log("Image position x:", x, "y:", y);
         console.log("canvas height: ", canvasHeight);
@@ -770,38 +595,32 @@ export function buttonContTrial(config, options) {
         const fillLevel = step;
         const currentLevel = Math.min(fillLevel, 10);
 
-        if (!isMobile && !classicGraphics && !(isTablet && stars_12)) {
+        if (!classicGraphics) {
           console.log("Drawing stars and brain for desktop");
-          const leftX = isTablet ? 20 : smallScreen ? 10 : 40;
-          const leftStartY = isTablet ? textBounds.endY + 25 : height * 0.25;
+          const leftX = smallScreen ? 10 : 40;
+          const leftStartY = height * 0.25;
 
           // draw full stars
           for (let i = 0; i < fullStars; i++) {
             const star = starImgs[10];
-            const posY = isTablet
-              ? leftStartY + i * (starSize + spacing)
-              : leftStartY + (i % (stars_12 ? 3 : 2)) * (starSize + spacing);
+            const posY = leftStartY + (i % (stars_12 ? 3 : 2)) * (starSize + spacing);
             star.onload = function () {
-              if (isTablet) ctx.drawImage(star, leftX, posY, starSize, starSize);
-              else
-                ctx.drawImage(
-                  star,
-                  leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
-                  posY,
-                  starSize,
-                  starSize
-                );
+              ctx.drawImage(
+                star,
+                leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
+                posY,
+                starSize,
+                starSize
+              );
             };
             if (star.complete) {
-              if (isTablet) ctx.drawImage(star, leftX, posY, starSize, starSize);
-              else
-                ctx.drawImage(
-                  star,
-                  leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
-                  posY,
-                  starSize,
-                  starSize
-                );
+              ctx.drawImage(
+                star,
+                leftX + Math.floor(i / (stars_12 ? 3 : 2)) * (starSize + spacing),
+                posY,
+                starSize,
+                starSize
+              );
             }
           }
 
@@ -811,8 +630,8 @@ export function buttonContTrial(config, options) {
           const activeStarSize = starSize * activeStarScale;
           const brainW = brain.width * brainScale;
           const brainH = brain.height * brainScale;
-          const brainX = width - brainW - (isTablet ? 20 : 60);
-          const brainY = isTablet ? textBounds.endY + 2 * activeStarSize : height * 0.55;
+          const brainX = width - brainW - 60;
+          const brainY = height * 0.55;
 
           const starX = brainX + brainW / 2 - activeStarSize / 2;
           const starY = brainY - activeStarSize * 1.2;
@@ -823,83 +642,6 @@ export function buttonContTrial(config, options) {
           };
           if (currentStar.complete)
             ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
-        } else if (isMobile && !classicGraphics && !stars_12) {
-          const leftX = 0;
-          const leftStartY = 20;
-          const currentStar = starImgs[currentLevel];
-          for (let i = 0; i < fullStars + 1 && i < totalStars; i++) {
-            const star = starImgs[10];
-            const posX = leftX + i * (starSize + spacing);
-            if (i < fullStars) {
-              star.onload = function () {
-                ctx.drawImage(star, posX, leftStartY, starSize, starSize);
-              };
-              if (star.complete) ctx.drawImage(star, posX, leftStartY, starSize, starSize);
-            } else {
-              currentStar.onload = function () {
-                ctx.drawImage(currentStar, posX, leftStartY, starSize, starSize);
-              };
-              if (currentStar.complete)
-                ctx.drawImage(currentStar, posX, leftStartY, starSize, starSize);
-            }
-          }
-        } else if ((isMobile || isTablet) && stars_12 && !classicGraphics) {
-          const leftX = isTablet ? canvasWidth * 0.03 : canvasWidth * 0.02; // X position for left column
-          const rightX = isTablet
-            ? starSize + canvasWidth * 0.15
-            : canvasWidth - starSize - canvasWidth * 0.02; // X position for right column (adjust as needed)
-          const startY = y - starSize / 2 - framePadding; // Top Y position
-          const currentStar = starImgs[currentLevel];
-          const starsPerColumn = isTablet ? 12 : 6;
-
-          for (let i = 0; i < fullStars + 1 && i < totalStars; i++) {
-            const star = starImgs[10];
-
-            // Determine which column (0 = left, 1 = right, etc.)
-            const column = Math.floor(i / starsPerColumn);
-
-            // Determine position within the column (0-5)
-            const rowInColumn = i % starsPerColumn;
-
-            // Set X position based on column
-            const posX = column === 0 ? leftX : rightX;
-
-            // Set Y position based on row in column (vertical spacing)
-            const posY = startY + rowInColumn * (starSize + spacing);
-
-            if (i < fullStars) {
-              star.onload = function () {
-                ctx.drawImage(star, posX, posY, starSize, starSize);
-              };
-              if (star.complete) ctx.drawImage(star, posX, posY, starSize, starSize);
-            } else if (isMobile) {
-              currentStar.onload = function () {
-                ctx.drawImage(currentStar, posX, posY, starSize, starSize);
-              };
-              if (currentStar.complete) ctx.drawImage(currentStar, posX, posY, starSize, starSize);
-            }
-          }
-
-          // Draw brain and active star on tablet
-          if (isTablet) {
-            const currentStar = starImgs[currentLevel];
-            const activeStarScale = 3;
-            const activeStarSize = starSize * activeStarScale;
-            const brainW = brain.width * brainScale;
-            const brainH = brain.height * brainScale;
-            const brainX = width - brainW - (isTablet ? 20 : 60);
-            const brainY = isTablet ? textBounds.endY + 2 * activeStarSize : height * 0.55;
-
-            const starX = brainX + brainW / 2 - activeStarSize / 2;
-            const starY = brainY - activeStarSize * 1.2;
-
-            ctx.drawImage(brain, brainX, brainY, brainW, brainH);
-            currentStar.onload = function () {
-              ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
-            };
-            if (currentStar.complete)
-              ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
-          }
         }
       };
       stimImg.src = stimPath;
@@ -909,10 +651,10 @@ export function buttonContTrial(config, options) {
     post_trial_gap: postTrialGap,
     response_ends_trial: responseEndsTrial,
     button_html: classicGraphics
-      ? trialChoices.map(
+      ? trialChoices().map(
           (txt) => `
         <div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_button.png"
+          <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
           <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text x="50%" y="50%">${txt}</text>
@@ -923,8 +665,8 @@ export function buttonContTrial(config, options) {
       : trialChoices().map(
           (txt, i) => `
         <div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_${isMobile ? ["red", "blue", "green"][i] : ["red", "green", "blue"][i]}.png"
-                class="image-btn" style="${isMobile ? "mix-blend-mode: multiply;" : ""}">
+          <input type="image" src="./assets/blank_${["red", "green", "blue"][i]}.png"
+                class="image-btn">
           <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">${txt}</text>
             <text class="text-fill" x="50%" y="50%">${txt}</text>

@@ -33,8 +33,8 @@
 //----------------------- 1 ----------------------
 //-------------------- IMPORTS -------------------
 
-import jsPsychImageKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
-import jsPsychImageButtonResponse from "@jspsych/plugin-html-button-response";
+import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
+import jsPsychHtmlButtonResponse from "@jspsych/plugin-html-button-response";
 import { config } from "../config/main";
 
 import { stim_set, selfpaced, orderfile, resp_mode } from "../App/components/Login";
@@ -107,14 +107,14 @@ const testTrial = (tlv) => {
   // if keyboard response, return keyboard type and timeline
   if (resp_mode == "keyboard") {
     return {
-      type: jsPsychImageKeyboardResponse,
+      type: jsPsychHtmlKeyboardResponse,
       timeline,
     };
   }
   // if button response, return button type and timeline
   else if (resp_mode == "button") {
     return {
-      type: jsPsychImageButtonResponse,
+      type: jsPsychHtmlButtonResponse,
       timeline,
     };
   }

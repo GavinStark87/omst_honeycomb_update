@@ -60,7 +60,7 @@ import {
   roundRect,
   calculateSideBySideCanvasSize,
 } from "../lib/utils.js";
-import { lang, resp_mode } from "../App/components/Login";
+import { lang, resp_mode, classic_graphics } from "../App/components/Login";
 import { jsPsychCategorizeImageButtons } from "./uniquePlugins/plugin-categorize-image-buttons.js";
 
 import "./css/instructions.css";
@@ -196,12 +196,6 @@ function fitTrialToScreen() {
     window.innerWidth
   );
 
-  const containerStyle = window.getComputedStyle(container);
-  const containerPadding =
-    parseFloat(containerStyle.paddingTop) + parseFloat(containerStyle.paddingBottom);
-  const availableHeight = totalHeight - containerPadding;
-  console.log("Available height:", availableHeight);
-
   // Get the three main sections
   const promptContainer = document.querySelector(".prompt-container");
   const stimulusContainer = document.querySelector(".jspsych-categorize-image-buttons-stimulus");
@@ -212,94 +206,52 @@ function fitTrialToScreen() {
   if (!promptContainer || !stimulusContainer || !buttonContainer) return;
 
   console.log("Total height:", totalHeight);
-  console.log(
-    "Device type - isMobile:",
-    isMobile,
-    "isTablet:",
-    isTablet,
-    "smallScreen:",
-    smallScreen,
-    "desktop:",
-    !smallScreen && !isMobile && !isTablet
+  console.log("smallScreen:", smallScreen, "desktop:", !smallScreen);
+
+  // LAPTOP, DESKTOP: Buttons in a row, horizontal layout
+  const buttonHeight = buttonContainer.offsetHeight;
+  console.log("Button height (horizontal):", buttonHeight);
+
+  // For horizontal layouts, buttons take less height but more width
+  // We want the image to be reasonable size, not blown out
+
+  // Calculate available space for stimulus + prompt
+  const margin = 60; // More margin for desktop
+  const availableHeight = totalHeight - buttonHeight - margin;
+
+  // Determine stimulus size based on device
+  let maxStimulusPercent;
+  if (smallScreen) {
+    maxStimulusPercent = 0.75;
+  } else {
+    maxStimulusPercent = 0.7;
+  }
+  console.log(availableHeight);
+  const stimulusAllocation = availableHeight * maxStimulusPercent;
+  const promptAllocation = availableHeight * (1 - maxStimulusPercent);
+
+  console.log("Stimulus allocation:", stimulusAllocation);
+  console.log("Prompt allocation:", promptAllocation);
+
+  // Size stimulus as square, but constrained by both height and reasonable width
+  let stimulusSize = Math.min(
+    stimulusAllocation, // Don't exceed allocated height
+    totalWidth * 0.8, // Don't exceed 80% of screen width
+    totalHeight * 0.7 // Don't exceed 70% of screen height
   );
 
-  // MOBILE: Buttons stacked (2 top, 1 bottom), vertical layout
-  if (isMobile) {
-    const buttonHeight = buttonContainer.offsetHeight;
-    console.log("Button height:", buttonHeight);
+  console.log("Final stimulus size:", stimulusSize);
 
-    // Stimulus should be square at 90vw
-    const stimulusSize = totalWidth * 0.9;
-    console.log("Stimulus size:", stimulusSize);
+  stimulusContainer.style.width = stimulusSize + "px";
+  stimulusContainer.style.height = stimulusSize + "px";
+  stimulusContainer.style.maxWidth = stimulusSize + "px";
+  stimulusContainer.style.maxHeight = stimulusSize + "px";
+  stimulusContainer.style.margin = "40px auto"; // Center it
 
-    // Remaining space for prompt
-    const margin = 40;
-    const promptHeight = totalHeight - stimulusSize - buttonHeight - margin;
-    console.log("Prompt height:", promptHeight);
-
-    // Ensure prompt has minimum viable space
-    if (promptHeight < 30) {
-      console.warn("Prompt space too small, adjusting layout");
-      const adjustedStimSize = totalHeight - buttonHeight - 60 - margin;
-      stimulusContainer.style.width = adjustedStimSize + "px";
-      stimulusContainer.style.height = adjustedStimSize + "px";
-      promptContainer.style.height = "60px";
-    } else {
-      stimulusContainer.style.width = stimulusSize + "px";
-      stimulusContainer.style.height = stimulusSize + "px";
-      stimulusContainer.style.maxWidth = stimulusSize + "px";
-      stimulusContainer.style.maxHeight = stimulusSize + "px";
-      promptContainer.style.height = promptHeight + "px";
-    }
-  }
-  // TABLET, LAPTOP, DESKTOP: Buttons in a row, horizontal layout
-  else {
-    const buttonHeight = buttonContainer.offsetHeight;
-    console.log("Button height (horizontal):", buttonHeight);
-
-    // For horizontal layouts, buttons take less height but more width
-    // We want the image to be reasonable size, not blown out
-
-    // Calculate available space for stimulus + prompt
-    const margin = 60; // More margin for desktop
-    const availableHeight = totalHeight - buttonHeight - margin;
-
-    // Determine stimulus size based on device
-    let maxStimulusPercent;
-    if (smallScreen) {
-      maxStimulusPercent = 0.75;
-    } else if (isTablet) {
-      maxStimulusPercent = 0.8;
-    } else {
-      maxStimulusPercent = 0.7;
-    }
-    console.log(availableHeight);
-    const stimulusAllocation = availableHeight * maxStimulusPercent;
-    const promptAllocation = availableHeight * (1 - maxStimulusPercent);
-
-    console.log("Stimulus allocation:", stimulusAllocation);
-    console.log("Prompt allocation:", promptAllocation);
-
-    // Size stimulus as square, but constrained by both height and reasonable width
-    let stimulusSize = Math.min(
-      stimulusAllocation, // Don't exceed allocated height
-      totalWidth * 0.8, // Don't exceed 80% of screen width
-      totalHeight * 0.7 // Don't exceed 70% of screen height
-    );
-
-    console.log("Final stimulus size:", stimulusSize);
-
-    stimulusContainer.style.width = stimulusSize + "px";
-    stimulusContainer.style.height = stimulusSize + "px";
-    stimulusContainer.style.maxWidth = stimulusSize + "px";
-    stimulusContainer.style.maxHeight = stimulusSize + "px";
-    stimulusContainer.style.margin = "40px auto"; // Center it
-
-    // Prompt gets remaining space
-    const actualPromptHeight = totalHeight - stimulusSize - buttonHeight - margin;
-    promptContainer.style.height = actualPromptHeight + "px";
-    console.log("Actual prompt height:", actualPromptHeight);
-  }
+  // Prompt gets remaining space
+  const actualPromptHeight = totalHeight - stimulusSize - buttonHeight - margin;
+  promptContainer.style.height = actualPromptHeight + "px";
+  console.log("Actual prompt height:", actualPromptHeight);
 
   // Style prompt container
   promptContainer.style.display = "flex";
@@ -325,13 +277,7 @@ function fitTrialToScreen() {
 
     // Adjust font size ranges based on device
     let minFontSize, maxFontSize;
-    if (isMobile) {
-      minFontSize = 36;
-      maxFontSize = 96;
-    } else if (isTablet) {
-      minFontSize = 40;
-      maxFontSize = 80;
-    } else if (smallScreen) {
+    if (smallScreen) {
       minFontSize = 32;
       maxFontSize = 64;
     } else {
@@ -378,7 +324,7 @@ function makeCategorizeTrial(
             (txt, i) => `
         <div class="image-btn-wrapper">
           <input type="image" 
-                src="/assets/blank_button.png"
+                src="./assets/blank_button.png"
                 class="image-btn"
                 data-choice="${i}"
                 data-correct="${i === buttonAnswer}">
@@ -392,7 +338,7 @@ function makeCategorizeTrial(
             (txt, i) => `
         <div class="image-btn-wrapper">
           <input type="image" 
-                src="/assets/blank_${isMobile ? ["red", "blue", "green"][i] : ["red", "green", "blue"][i]}.png"
+                src="./assets/blank_${["red", "green", "blue"][i]}.png"
                 class="image-btn"
                 data-choice="${i}"
                 data-correct="${i === buttonAnswer}">
@@ -432,13 +378,7 @@ function makeCategorizeTrial(
             if (promptText && typeof fitTextToContainer === "function") {
               const containerHeight = promptContainer.offsetHeight;
               let minFontSize, maxFontSize;
-              if (isMobile) {
-                minFontSize = 36;
-                maxFontSize = 96;
-              } else if (isTablet) {
-                minFontSize = 40;
-                maxFontSize = 80;
-              } else if (smallScreen) {
+              if (smallScreen) {
                 minFontSize = 32;
                 maxFontSize = 64;
               } else {
@@ -603,13 +543,7 @@ function makeCategorizeTrial(
             if (promptText && typeof fitTextToContainer === "function") {
               const containerHeight = promptContainer.offsetHeight;
               let minFontSize, maxFontSize;
-              if (isMobile) {
-                minFontSize = 36;
-                maxFontSize = 96;
-              } else if (isTablet) {
-                minFontSize = 40;
-                maxFontSize = 80;
-              } else if (smallScreen) {
+              if (smallScreen) {
                 minFontSize = 32;
                 maxFontSize = 64;
               } else {
@@ -726,7 +660,7 @@ function makeSideBySideTrial(imgLeft, imgRight, promptText, buttonLabel) {
   return {
     type: resp_mode == "button" ? jsPsychCanvasButtonResponse : jsPsychCanvasKeyboardResponse,
     choices: [buttonLabel],
-    canvas_size: calculateSideBySideCanvasSize(isMobile, isTablet, smallScreen), // Calculate based on horizontal allocation
+    canvas_size: calculateSideBySideCanvasSize(smallScreen), // Calculate based on horizontal allocation
     stimulus: function (c) {
       const ctx = c.getContext("2d");
       ctx.fillStyle = classicGraphics ? "white" : "#fff9e0";
@@ -784,14 +718,14 @@ function makeSideBySideTrial(imgLeft, imgRight, promptText, buttonLabel) {
     prompt: `<p class="prompt_text" style="margin: 0;">${promptText}</p>`,
     button_html: classicGraphics
       ? `<div class="image-btn-wrapper">
-        <input type="image" src="/assets/blank_button.png"
+        <input type="image" src="./assets/blank_button.png"
               class="image-btn">
         <svg class="image-btn-text" viewBox="0 0 266 160">
           <text x="50%" y="50%">%choice%</text>
         </svg>
       </div>`
       : `<div class="image-btn-wrapper">
-        <input type="image" src="/assets/blank_green.png"
+        <input type="image" src="./assets/blank_green.png"
               class="image-btn">
         <svg class="image-btn-text" viewBox="0 0 266 160">
           <text class="text-stroke" x="50%" y="50%">%choice%</text>
@@ -800,7 +734,7 @@ function makeSideBySideTrial(imgLeft, imgRight, promptText, buttonLabel) {
       </div>`,
     on_load: function () {
       requestAnimationFrame(() => {
-        fitSideBySideToScreen(isMobile, isTablet, smallScreen);
+        fitSideBySideToScreen(smallScreen);
       });
 
       setupButtonListeners();
@@ -815,45 +749,48 @@ function makeSideBySideTrial(imgLeft, imgRight, promptText, buttonLabel) {
 //----------------------- 3 ----------------------
 //----------------- CONSTANTS -------------------
 
-const device = getDeviceType();
-console.log("have device " + device);
-const isMobile = device[0];
-const isTablet = device[1];
-const smallScreen = device[2];
-console.log("smallScreen " + smallScreen);
-/*const canvasWidth = isMobile ? stars_12 ? window.innerWidth * 1 : window.innerWidth * .9 
-                    : isTablet ? stars_12 ? window.innerWidth * 1 : window.innerWidth * .9
-                    : window.innerWidth * .9;
-const canvasHeight = isMobile ? window.innerHeight * 0.65 
-                    : smallScreen ? window.innerHeight * 0.75 
-                    : isTablet ? window.innerHeight * 0.8 
-                    : window.innerHeight * .70;
-const fontScale = isMobile ? 1.5 : 1.0;
-const stimScale = isMobile ? 2 : smallScreen ? 0.85: isTablet ? 1.2 : 1.0;*/
-const classicGraphics = false; // for now
+let device = {};
+let smallScreen = {};
+let canvasWidth = {};
+let canvasHeight = {};
+let classicGraphics = {};
+
+function assignVars() {
+  device = getDeviceType();
+  smallScreen = device[2];
+  canvasWidth = window.innerWidth * 0.9;
+  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
+  console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
+  classicGraphics = classic_graphics;
+  if (classicGraphics) {
+    document.body.classList.add("classic");
+  }
+  console.log("classicGraphics " + classicGraphics);
+}
 
 const preload_fnames = [];
 
 preload_fnames.push(
-  "/assets/blank_blue.png",
-  "/assets/blank_blue_pressed.png",
-  "/assets/blank_green.png",
-  "/assets/blank_green_pressed.png",
-  "/assets/blank_red.png",
-  "/assets/blank_red_pressed.png",
+  "./assets/blank_blue.png",
+  "./assets/blank_blue_pressed.png",
+  "./assets/blank_green.png",
+  "./assets/blank_green_pressed.png",
+  "./assets/blank_red.png",
+  "./assets/blank_red_pressed.png",
   "/assets/brain.png",
   images["pcon028a.jpg"],
   images["pcon028b.jpg"],
-  "assets/pcon028b_border.png",
-  "assets/pcon026a_border.png",
-  "assets/pcon026b_border.png",
-  "assets/pcon028a_border.png",
-  "assets/foil_1035_border.png",
+  "./assets/pcon028b_border.png",
+  "./assets/pcon026a_border.png",
+  "./assets/pcon026b_border.png",
+  "./assets/pcon028a_border.png",
+  "./assets/foil_1035_border.png",
   images["pcon026a.jpg"],
   images["pcon026b.jpg"],
-  "assets/foil_1033_border.png",
-  "assets/foil_1032_border.png",
-  ...Array.from({ length: 11 }, (_, i) => `/assets/star${i}.png`)
+  "./assets/foil_1033_border.png",
+  "./assets/foil_1032_border.png",
+  ...Array.from({ length: 11 }, (_, i) => `./assets/star${i}.png`)
 );
 
 //----------------------- 4 ----------------------
@@ -881,7 +818,7 @@ var outro = {};
 
 function refresh_instr_trials(jsPsych) {
   console.log("...refreshing instr trial");
-
+  assignVars();
   preload = {
     type: jsPsychPreload,
     images: preload_fnames, // since we use a timeline variable, we can't use the simple "trials"
@@ -914,14 +851,14 @@ function refresh_instr_trials(jsPsych) {
     data: { task: phasename },
     button_html: classicGraphics
       ? `<div class="image-btn-wrapper">
-        <input type="image" src="/assets/blank_button.png"
+        <input type="image" src="./assets/blank_button.png"
               class="image-btn">
         <svg class="image-btn-text" viewBox="0 0 266 160">
           <text x="50%" y="50%">${instr_choice()}</text>
         </svg>
       </div>`
       : `<div class="image-btn-wrapper">
-        <input type="image" src="/assets/blank_green.png"
+        <input type="image" src="./assets/blank_green.png"
               class="image-btn">
         <svg class="image-btn-text" viewBox="0 0 266 160">
           <text class="text-stroke" x="50%" y="50%">${instr_choice()}</text>
@@ -930,7 +867,7 @@ function refresh_instr_trials(jsPsych) {
       </div>`,
     on_load: function () {
       requestAnimationFrame(() => {
-        fitIntroOutroToScreen(isMobile, isTablet, smallScreen);
+        fitIntroOutroToScreen(smallScreen);
       });
 
       setupButtonListeners();
@@ -943,7 +880,7 @@ function refresh_instr_trials(jsPsych) {
 
   new1 = makeCategorizeTrial(
     jsPsych,
-    "assets/foil_1032_border.png",
+    classicGraphics ? images["foil_1032.jpg"] : "./assets/foil_1032_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.new,
     2,
@@ -969,7 +906,7 @@ function refresh_instr_trials(jsPsych) {
 
   new2 = makeCategorizeTrial(
     jsPsych,
-    "assets/foil_1033_border.png",
+    classicGraphics ? images["foil_1033.jpg"] : "./assets/foil_1033_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.new,
     2,
@@ -980,7 +917,7 @@ function refresh_instr_trials(jsPsych) {
 
   new3 = makeCategorizeTrial(
     jsPsych,
-    "assets/pcon026a_border.png",
+    classicGraphics ? images["pcon026a.jpg"] : "./assets/pcon026a_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.new,
     2,
@@ -991,7 +928,7 @@ function refresh_instr_trials(jsPsych) {
 
   repeat1 = makeCategorizeTrial(
     jsPsych,
-    "assets/foil_1033_border.png",
+    classicGraphics ? images["foil_1033.jpg"] : "./assets/foil_1033_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.old,
     0,
@@ -1002,7 +939,7 @@ function refresh_instr_trials(jsPsych) {
 
   lure1 = makeCategorizeTrial(
     jsPsych,
-    "assets/pcon026b_border.png",
+    classicGraphics ? images["pcon026b.jpg"] : "./assets/pcon026b_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.sim,
     1,
@@ -1028,7 +965,7 @@ function refresh_instr_trials(jsPsych) {
 
   new4 = makeCategorizeTrial(
     jsPsych,
-    "assets/foil_1035_border.png",
+    classicGraphics ? images["foil_1035.jpg"] : "./assets/foil_1035_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.new,
     2,
@@ -1039,7 +976,7 @@ function refresh_instr_trials(jsPsych) {
 
   new5 = makeCategorizeTrial(
     jsPsych,
-    "assets/pcon028a_border.png",
+    classicGraphics ? images["pcon028a.jpg"] : "./assets/pcon028a_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.new,
     2,
@@ -1050,7 +987,7 @@ function refresh_instr_trials(jsPsych) {
 
   repeat2 = makeCategorizeTrial(
     jsPsych,
-    "assets/pcon026a_border.png",
+    classicGraphics ? images["pcon026a.jpg"] : "./assets/pcon026a_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.old,
     0,
@@ -1061,7 +998,7 @@ function refresh_instr_trials(jsPsych) {
 
   lure2 = makeCategorizeTrial(
     jsPsych,
-    "assets/pcon028b_border.png",
+    classicGraphics ? images["pcon028b.jpg"] : "./assets/pcon028b_border.png",
     trial_choices(),
     lang.instructions.key.trial_choices.sim,
     1,
@@ -1087,14 +1024,14 @@ function refresh_instr_trials(jsPsych) {
     data: { task: phasename },
     button_html: classicGraphics
       ? `<div class="image-btn-wrapper">
-        <input type="image" src="/assets/blank_button.png"
+        <input type="image" src="./assets/blank_button.png"
               class="image-btn">
         <svg class="image-btn-text" viewBox="0 0 266 160">
           <text x="50%" y="50%">${instr_choice()}</text>
         </svg>
       </div>`
       : `<div class="image-btn-wrapper">
-        <input type="image" src="/assets/blank_green.png"
+        <input type="image" src="./assets/blank_green.png"
               class="image-btn">
         <svg class="image-btn-text" viewBox="0 0 266 160">
           <text class="text-stroke" x="50%" y="50%">${instr_choice()}</text>
@@ -1103,7 +1040,7 @@ function refresh_instr_trials(jsPsych) {
       </div>`,
     on_load: function () {
       requestAnimationFrame(() => {
-        fitIntroOutroToScreen(isMobile, isTablet, smallScreen);
+        fitIntroOutroToScreen(smallScreen);
       });
 
       setupButtonListeners();

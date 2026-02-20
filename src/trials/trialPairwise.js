@@ -131,7 +131,6 @@ export function buttonPairwiseTrial(config, options) {
 
   // Extract the values we need for makeSideBySideChoice
   const { image1, image2, data, stimulusDuration } = trial;
-  console.log("Image 1 and 2: ", image1(), image2());
   // Call makeSideBySideChoice with the merged values and return the result
   return makeSideBySideChoice(
     trial_choices(),

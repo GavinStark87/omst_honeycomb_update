@@ -21,7 +21,7 @@ import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-respo
 import jsPsychCanvasButtonResponse from "@jspsych/plugin-canvas-button-response";
 import jsPsychPreload from "@jspsych/plugin-preload";
 
-import { lang, resp_mode } from "../App/components/Login";
+import { lang, resp_mode, classic_graphics } from "../App/components/Login";
 import {
   images,
   invNormcdf,
@@ -69,7 +69,9 @@ var instr1_prompt = function () {
 };
 
 var instr1_stim = function () {
-  return lang.pcon.instr1_stim;
+  return "In this task, you will see two objects appear on the screen at the same time. \
+    Your job is to determine if the two images are <i>exactly the same</i> \
+    or similar to each other.";
 };
 
 var instr2_prompt = function () {
@@ -102,7 +104,7 @@ function makeSideBySideTrial(imgLeft, imgRight, stimulusText, promptText, button
   return {
     type: resp_mode == "button" ? jsPsychCanvasButtonResponse : jsPsychCanvasKeyboardResponse,
     choices: [buttonLabel],
-    canvas_size: calculateSideBySideCanvasSize(isMobile, isTablet, smallScreen, true, true),
+    canvas_size: calculateSideBySideCanvasSize(smallScreen, true, true),
     stimulus: function (c) {
       const ctx = c.getContext("2d");
       ctx.fillStyle = classicGraphics ? "white" : "#fff9e0";
@@ -158,17 +160,17 @@ function makeSideBySideTrial(imgLeft, imgRight, stimulusText, promptText, button
       imgL.src = imgLeft;
       imgR.src = imgRight;
     },
-    prompt: `<div class="prompt">${promptText}</div>`,
+    prompt: `<div class="prompt_text">${promptText}</div>`,
     button_html: classicGraphics
       ? `<div class="image-btn-wrapper" style="margin-top: 40px;">
-          <input type="image" src="/assets/blank_button.png"
+          <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
           <svg class="image-btn-text" viewBox="0 0 266 160">
             <text x="50%" y="50%">%choice%</text>
           </svg>
         </div>`
       : `<div class="image-btn-wrapper" style="margin-top: 40px;">
-          <input type="image" src="/assets/blank_green.png"
+          <input type="image" src="./assets/blank_green.png"
                 class="image-btn">
           <svg class="image-btn-text" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>
@@ -183,12 +185,12 @@ function makeSideBySideTrial(imgLeft, imgRight, stimulusText, promptText, button
         stimulusDiv.className = "prompt_text stimulus_div";
         stimulusDiv.style.textAlign = "center";
         stimulusDiv.style.padding = "0px 20px";
-        stimulusDiv.innerHTML = `<p>${stimulusText}</p>`;
+        stimulusDiv.innerHTML = `<p class="prompt_text">${stimulusText}</p>`;
         canvasElement.parentNode.insertBefore(stimulusDiv, canvasElement);
       }
 
       requestAnimationFrame(() => {
-        fitSideBySideTrialToScreen(isMobile, isTablet, smallScreen, true);
+        fitSideBySideTrialToScreen(smallScreen, true);
       });
 
       setupButtonListeners();
@@ -220,7 +222,7 @@ function makeSideBySideChoice(
       ? buttonLabels.map(
           (txt) => `
         <div class="image-btn-wrapper">
-            <input type="image" src="/assets/blank_button.png"
+            <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
             <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text x="50%" y="50%">${txt}</text>
@@ -231,8 +233,8 @@ function makeSideBySideChoice(
       : buttonLabels.map(
           (txt, i) => `
         <div class="image-btn-wrapper">
-            <input type="image" src="/assets/blank_${isMobile ? ["red", "green"][i] : ["red", "green"][i]}.png"
-                class="image-btn" style="${isMobile ? "mix-blend-mode: multiply;" : ""}">
+            <input type="image" src="./assets/blank_${["red", "green"][i]}.png"
+                class="image-btn" >
             <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">${txt}</text>
             <text class="text-fill" x="50%" y="50%">${txt}</text>
@@ -240,7 +242,7 @@ function makeSideBySideChoice(
         </div>
         `
         ),
-    canvas_size: isMobile ? [canvasHeight * 0.9, canvasWidth] : [canvasHeight * 0.8, canvasWidth],
+    canvas_size: [canvasHeight * 0.8, canvasWidth],
 
     stimulus: function (c) {
       const img1 = image1;
@@ -260,13 +262,9 @@ function makeSideBySideChoice(
       // Star and brain setup
       const totalStars = 5;
       const maxFill = 10; // star1–star10
-      const starSize = isMobile
-        ? Math.min(width, height) * 0.15
-        : isTablet
-          ? Math.min(width, height) * 0.12
-          : Math.min(width, height) * 0.15;
-      const spacing = isMobile ? starSize * 0.15 : isTablet ? starSize * 0.2 : starSize * 0.25;
-      const brainScale = isTablet ? 0.15 : smallScreen ? 0.15 : 0.2;
+      const starSize = Math.min(width, height) * 0.15;
+      const spacing = starSize * 0.25;
+      const brainScale = smallScreen ? 0.15 : 0.2;
 
       function drawScene() {
         // === Progress info (stars/brain) ===
@@ -278,82 +276,47 @@ function makeSideBySideChoice(
         const currentLevel = Math.min(fillLevel, 10);
 
         if (score && !classicGraphics) {
-          if (!isMobile) {
-            const leftX = isTablet ? 20 : smallScreen ? 10 : 40;
-            const leftStartY = isTablet ? 25 : height * 0.25;
+          const leftX = smallScreen ? 10 : 40;
+          const leftStartY = height * 0.25;
 
-            for (let i = 0; i < fullStars; i++) {
-              const star = starImgs[10];
-              const posY = isTablet
-                ? leftStartY + i * (starSize + spacing)
-                : leftStartY + (i % 2) * (starSize + spacing);
-              star.onload = function () {
-                if (isTablet) ctx.drawImage(star, leftX, posY, starSize, starSize);
-                else
-                  ctx.drawImage(
-                    star,
-                    leftX + Math.floor(i / 2) * (starSize + spacing),
-                    posY,
-                    starSize,
-                    starSize
-                  );
-              };
-              if (star.complete) {
-                if (isTablet) ctx.drawImage(star, leftX, posY, starSize, starSize);
-                else
-                  ctx.drawImage(
-                    star,
-                    leftX + Math.floor(i / 2) * (starSize + spacing),
-                    posY,
-                    starSize,
-                    starSize
-                  );
-              }
-            }
-
-            const currentStar = starImgs[currentLevel];
-            const activeStarScale = 1.75;
-            const activeStarSize = starSize * activeStarScale;
-            const brainW = brain.width * brainScale;
-            const brainH = brain.height * brainScale;
-            const brainX = width - brainW - (isTablet ? 20 : 60);
-            const brainY = isTablet ? 2 * activeStarSize : height * 0.55;
-
-            const starX = brainX + brainW / 2 - activeStarSize / 2;
-            const starY = brainY - activeStarSize * 1.2;
-
-            ctx.drawImage(brain, brainX, brainY, brainW, brainH);
-            currentStar.onload = function () {
-              ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
+          for (let i = 0; i < fullStars; i++) {
+            const star = starImgs[10];
+            const posY = leftStartY + (i % 2) * (starSize + spacing);
+            star.onload = function () {
+              ctx.drawImage(
+                star,
+                leftX + Math.floor(i / 2) * (starSize + spacing),
+                posY,
+                starSize,
+                starSize
+              );
             };
-            if (currentStar.complete) {
-              ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
-            }
-          } else if (isMobile) {
-            // Mobile: Stack stars vertically on the left
-            const leftX = 10;
-            const leftStartY = 20;
-            const currentStar = starImgs[currentLevel];
+            ctx.drawImage(
+              star,
+              leftX + Math.floor(i / 2) * (starSize + spacing),
+              posY,
+              starSize,
+              starSize
+            );
+          }
 
-            for (let i = 0; i < fullStars; i++) {
-              const star = starImgs[10];
-              const posY = leftStartY + i * (starSize + spacing);
-              star.onload = function () {
-                ctx.drawImage(star, leftX, posY, starSize, starSize);
-              };
-              if (star.complete) ctx.drawImage(star, leftX, posY, starSize, starSize);
-            }
+          const currentStar = starImgs[currentLevel];
+          const activeStarScale = 1.75;
+          const activeStarSize = starSize * activeStarScale;
+          const brainW = brain.width * brainScale;
+          const brainH = brain.height * brainScale;
+          const brainX = width - brainW - 60;
+          const brainY = height * 0.55;
 
-            // Draw current star
-            if (fullStars < totalStars && fillLevel > 0) {
-              const posY = leftStartY + fullStars * (starSize + spacing);
-              currentStar.onload = function () {
-                ctx.drawImage(currentStar, leftX, posY, starSize, starSize);
-              };
-              if (currentStar.complete) {
-                ctx.drawImage(currentStar, leftX, posY, starSize, starSize);
-              }
-            }
+          const starX = brainX + brainW / 2 - activeStarSize / 2;
+          const starY = brainY - activeStarSize * 1.2;
+
+          ctx.drawImage(brain, brainX, brainY, brainW, brainH);
+          currentStar.onload = function () {
+            ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
+          };
+          if (currentStar.complete) {
+            ctx.drawImage(currentStar, starX, starY, activeStarSize, activeStarSize);
           }
         }
         return;
@@ -363,121 +326,51 @@ function makeSideBySideChoice(
         drawScene();
 
         // *** CALCULATE AVAILABLE SPACE FOR IMAGES ***
-        const topMargin = isMobile ? 25 : isTablet ? 30 : 15;
+        const topMargin = 15;
         const bottomMargin = 30;
         const imageTopY = topMargin;
         const availableHeight = height - imageTopY - bottomMargin;
+        const horizontalSpace = width * 0.6;
 
-        // MOBILE VERTICAL STACKING
-        if (isMobile || isTablet) {
-          // Calculate space for stars on the left when scoring
-          const leftReserved = score && !classicGraphics && isMobile ? starSize + 30 : 0;
-          const availableWidth = width - leftReserved - 20; // 20px right margin
+        // Two square images side by side with gap
+        const availableWidthPerImage = (horizontalSpace - gap - framePadding * 4) / 2;
+        const availableHeightForImages = availableHeight - framePadding * 2;
 
-          // For vertical stack, we need space for 2 images + gap + frames
-          const verticalGap = 30;
-          const availableHeightPerImage = (availableHeight - verticalGap - framePadding * 4) / 2;
+        // Use square images - take the smaller dimension
+        const imgSize = Math.min(availableWidthPerImage, availableHeightForImages);
 
-          // Images are square - use the smaller dimension
-          const imgSize = Math.min(availableWidth - 2 * framePadding, availableHeightPerImage);
-          const imgWidth = imgSize;
-          const imgHeight = imgSize;
+        const imgWidth = imgSize;
+        const imgHeight = imgSize;
+        const totalWidth = imgWidth * 2 + gap;
+        const x = (width - totalWidth) / 2;
+        const y = imageTopY + (availableHeight - imgHeight - 2 * framePadding) / 2;
 
-          // Center horizontally in available space, offset right if scoring
-          const xStart = leftReserved + (availableWidth - imgWidth) / 2;
-          const totalHeight = imgHeight * 2 + verticalGap + framePadding * 4;
-          const yStart = imageTopY + (availableHeight - totalHeight) / 2;
-
-          // Position for top image
-          const img1X = xStart;
-          const img1Y = yStart;
-
-          // Position for bottom image
-          const img2X = xStart;
-          const img2Y = yStart + imgHeight + 2 * framePadding + verticalGap;
-
-          // Draw function for each image
-          function drawFramedImage(img, xPos, yPos) {
-            ctx.fillStyle = "#ffffff";
-            ctx.strokeStyle = "#5d2514";
-            ctx.lineWidth = 15;
-            if (!classicGraphics) {
-              roundRect(
-                ctx,
-                xPos - framePadding,
-                yPos - framePadding,
-                imgWidth + 2 * framePadding,
-                imgHeight + 2 * framePadding,
-                radius
-              );
-            }
-            ctx.fill();
-            ctx.stroke();
-            ctx.drawImage(img, xPos, yPos, imgWidth, imgHeight);
+        // Draw function for each image
+        function drawFramedImage(img, xPos) {
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#5d2514";
+          ctx.lineWidth = 15;
+          if (!classicGraphics) {
+            roundRect(
+              ctx,
+              xPos - framePadding,
+              y - framePadding,
+              imgWidth + 2 * framePadding,
+              imgHeight + 2 * framePadding,
+              radius
+            );
           }
-
-          drawFramedImage(imgL, img1X, img1Y);
-          drawFramedImage(imgR, img2X, img2Y);
-
-          // Store for setTimeout clear
-          imgL._renderInfo = { x: img1X, y: img1Y, imgWidth, imgHeight };
-          imgR._renderInfo = { x: img2X, y: img2Y, imgWidth, imgHeight };
-        } else {
-          // TABLET/DESKTOP SIDE-BY-SIDE
-          // For tablet: leave space for stars on left and brain on right
-          const leftReserved = isTablet && !classicGraphics && score ? starSize + 60 : 0;
-          const rightReserved =
-            isTablet && !classicGraphics && score ? brain.width * brainScale + 60 : 0;
-          const horizontalSpace =
-            isTablet && !classicGraphics && score
-              ? width - leftReserved - rightReserved
-              : isTablet
-                ? width * 0.8
-                : width * 0.6;
-
-          // Two square images side by side with gap
-          const availableWidthPerImage = (horizontalSpace - gap - framePadding * 4) / 2;
-          const availableHeightForImages = availableHeight - framePadding * 2;
-
-          // Use square images - take the smaller dimension
-          const imgSize = Math.min(availableWidthPerImage, availableHeightForImages);
-
-          const imgWidth = imgSize;
-          const imgHeight = imgSize;
-          const totalWidth = imgWidth * 2 + gap;
-          const x =
-            isTablet && !classicGraphics && score
-              ? leftReserved + (horizontalSpace - totalWidth) / 2
-              : (width - totalWidth) / 2;
-          const y = imageTopY + (availableHeight - imgHeight - 2 * framePadding) / 2;
-
-          // Draw function for each image
-          function drawFramedImage(img, xPos) {
-            ctx.fillStyle = "#ffffff";
-            ctx.strokeStyle = "#5d2514";
-            ctx.lineWidth = 15;
-            if (!classicGraphics) {
-              roundRect(
-                ctx,
-                xPos - framePadding,
-                y - framePadding,
-                imgWidth + 2 * framePadding,
-                imgHeight + 2 * framePadding,
-                radius
-              );
-            }
-            ctx.fill();
-            ctx.stroke();
-            ctx.drawImage(img, xPos, y, imgWidth, imgHeight);
-          }
-
-          drawFramedImage(imgL, x);
-          drawFramedImage(imgR, x + imgWidth + gap);
-
-          // Store for setTimeout clear
-          imgL._renderInfo = { x: x, y, imgWidth, imgHeight };
-          imgR._renderInfo = { x: x + imgWidth + gap, y, imgWidth, imgHeight };
+          ctx.fill();
+          ctx.stroke();
+          ctx.drawImage(img, xPos, y, imgWidth, imgHeight);
         }
+
+        drawFramedImage(imgL, x);
+        drawFramedImage(imgR, x + imgWidth + gap);
+
+        // Store for setTimeout clear
+        imgL._renderInfo = { x: x, y, imgWidth, imgHeight };
+        imgR._renderInfo = { x: x + imgWidth + gap, y, imgWidth, imgHeight };
       };
 
       imgL.src = img1;
@@ -552,37 +445,32 @@ function makeSideBySideChoice(
 
 //----------------------- 3 ----------------------
 //--------------------- CONSTANTS -------------------
-const device = getDeviceType();
-console.log("have device " + device);
-const isMobile = device[0];
-const isTablet = device[1];
-const smallScreen = device[2];
-console.log("smallScreen " + smallScreen);
-const canvasWidth = isMobile
-  ? stars_12
-    ? window.innerWidth * 1
-    : window.innerWidth * 0.9
-  : isTablet
-    ? stars_12
-      ? window.innerWidth * 1
-      : window.innerWidth * 0.9
-    : window.innerWidth * 0.9;
-const canvasHeight = isMobile
-  ? window.innerHeight * 0.65
-  : smallScreen
-    ? window.innerHeight * 0.75
-    : isTablet
-      ? window.innerHeight * 0.8
-      : window.innerHeight * 0.7;
+let device = {};
+let smallScreen = {};
+let canvasWidth = {};
+let canvasHeight = {};
+let classicGraphics = {};
+
+function assignVars() {
+  device = getDeviceType();
+  smallScreen = device[2];
+  canvasWidth = window.innerWidth * 0.9;
+  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
+  console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
+  classicGraphics = classic_graphics;
+  if (classicGraphics) {
+    document.body.classList.add("classic");
+  }
+  console.log("classicGraphics " + classicGraphics);
+}
 let num_correct = 0;
-const classicGraphics = false; // for now
-const stars_12 = true; // for now
 const brain = new Image();
-brain.src = "/assets/brain.png";
+brain.src = "./assets/brain.png";
 
 const starImgs = Array.from({ length: 11 }, (_, i) => {
   let img = new Image();
-  img.src = `/assets/star${i}.png`;
+  img.src = `./assets/star${i}.png`;
   return img;
 });
 
@@ -612,20 +500,20 @@ var pairwise_end = {};
 // refresh function called on Login once options for resp_mode and lang are set
 function refresh_pairwise_trials() {
   console.log("...refreshing pairwise trials");
-
+  assignVars();
   pairwise_instr1_trial = {
     type: resp_mode == "button" ? jsPsychHtmlButtonResponse : jsPsychHtmlKeyboardResponse,
     choices: instr_choice(),
     button_html: classicGraphics
       ? `<div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_button.png"
+          <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
           <svg class="image-btn-text" viewBox="0 0 266 160">
             <text x="50%" y="50%">%choice%</text>
           </svg>
         </div>`
       : `<div class="image-btn-wrapper">
-          <input type="image" src="/assets/blank_green.png"
+          <input type="image" src="./assets/blank_green.png"
                 class="image-btn">
           <svg class="image-btn-text" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>
@@ -634,7 +522,7 @@ function refresh_pairwise_trials() {
         </div>`,
     on_load: function () {
       requestAnimationFrame(() => {
-        fitIntroOutroToScreen(isMobile, isTablet, smallScreen);
+        fitIntroOutroToScreen(smallScreen);
       });
 
       setupButtonListeners();
@@ -679,8 +567,8 @@ function refresh_pairwise_trials() {
   pairwise_instr2_trial = makeSideBySideTrial(
     images["pprac1a.jpg"],
     images["pprac1a.jpg"],
-    `<p class="prompt_text">${lang.pcon.instr2_stim}</p>`,
-    `<p class="prompt_text">${instr2_prompt()}</p>`,
+    lang.pcon.instr2_stim,
+    instr2_prompt(),
     instr_choice()
   );
 
@@ -709,8 +597,8 @@ function refresh_pairwise_trials() {
   pairwise_instr3_trial = makeSideBySideTrial(
     images["pprac2a.jpg"],
     images["pprac2b.jpg"],
-    `<p class="prompt_text">${lang.pcon.instr3_stim}</p>`,
-    `<p class="prompt_text">${instr3_prompt()}</p>`,
+    lang.pcon.instr3_stim,
+    instr3_prompt(),
     instr_choice()
   );
 

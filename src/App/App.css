@@ -277,7 +277,7 @@ input[type="radio"]:checked::after {
   line-height: 1.2;
 }
 
-.classic.jspsych-display-element input[type="text"] {
+.classic .jspsych-display-element input[type="text"] {
   font-family: "Open Sans", "Arial", sans-serif;
   color: black;
   border: 2px solid black;
@@ -290,7 +290,7 @@ input[type="radio"]:checked::after {
   box-shadow: none;
 }
 
-.classic.jspsych-display-element input[type="text"]:focus {
+.classic .jspsych-display-element input[type="text"]:focus {
   border-color: black;
 }
 
@@ -299,7 +299,7 @@ input[type="radio"]:checked::after {
   border-color: #5d2b12;
 }
 
-.classic.jspsych-display-element input[type="text"]:focus-visible {
+.classic .jspsych-display-element input[type="text"]:focus-visible {
   border-color: black;
 }
 
@@ -355,7 +355,7 @@ input[type="radio"]:checked::after {
 }
 
 .image-btn-wrapper.pressed .image-btn-text {
-  transform: translate(-50%, -40%) !important;
+  transform: translate(-50%, -40%);
 }
 
 .classic .image-btn-wrapper.pressed .image-btn-text {
@@ -422,6 +422,12 @@ input[type="radio"]:checked::after {
   letter-spacing: 0.08em;
   text-anchor: middle;
   dominant-baseline: middle;
+}
+
+.classic .image-btn-text text {
+  font-family: "Open Sans", "Arial", sans-serif;
+  letter-spacing: normal;
+  font-weight: normal;
 }
 
 .image-btn-text .text-stroke {
@@ -561,6 +567,26 @@ input[type="radio"]:checked::after {
   text-align: center;
 }
 
+.graphics-options-container {
+  display: flex;
+  gap: 50px;
+}
+
+.graphics-options {
+  display: flex;
+  gap: 50px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.graphics-options select {
+  width: 150px;
+}
+
+.graphics-options select option {
+  text-align: center;
+}
+
 .checkboxes-container {
   display: flex;
   gap: 6px;
@@ -580,8 +606,9 @@ input[type="radio"]:checked::after {
   top: 10px;
   left: 10px;
   background-color: transparent;
-  border-color: #ccc;
+  border-color: #666666;
   align-items: left;
+  color: #666666;
 }
 
 /*----------------------- 4 ----------------------*/

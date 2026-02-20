@@ -2,10 +2,6 @@
   font-size: 1.5em;
 }
 
-.pcon-demos .image-btn-wrapper.pressed .image-btn-text {
-  transform: translate(-50%, -40%) !important;
-}
-
 .mobile.pcon-demos .image-btn-text text {
   font-size: 1.5em;
 }

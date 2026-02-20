@@ -60,8 +60,8 @@ import {
 } from "../App/components/Login.jsx";
 
 // consent, demog
-import { consent_trial, consentGiven, not_consented } from "../trials/consent_trial";
-import { demogform } from "../trials/demographics";
+import { createConsentTrial, consentGiven, not_consented } from "../trials/consent_trial";
+import { createDemogForm } from "../trials/demographics";
 
 // pcon
 import {
@@ -151,7 +151,7 @@ function buildTimeline(jsPsych, studyID, participantID) {
 
   // conditional timeline if consent form is included
   var incl_consent = {
-    timeline: [consent_trial],
+    timeline: [createConsentTrial()],
     conditional_function: function () {
       if (include_consent) {
         return true;
@@ -165,7 +165,7 @@ function buildTimeline(jsPsych, studyID, participantID) {
 
   // conditional timeline if demog form is included
   var incl_demog = {
-    timeline: [demogform],
+    timeline: [createDemogForm()],
     conditional_function: function () {
       if (include_demog) {
         return true;

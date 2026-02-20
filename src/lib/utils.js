@@ -514,7 +514,6 @@ function getDeviceType() {
 
 //----------------------- TEXT ----------------------
 async function drawHTMLText(ctx, html, x, y, fontSize, device, classicGraphics = false) {
-  const isMobile = device[0];
   const smallScreen = device[2];
   const parts = html.split(/(<[^>]+>)/).filter((p) => p.trim() !== "");
   let fontStyle = "";
@@ -679,7 +678,7 @@ async function drawHTMLText(ctx, html, x, y, fontSize, device, classicGraphics =
       ctx.fillStyle = fillColor;
 
       if (useOutline) {
-        ctx.lineWidth = isMobile ? 15 : smallScreen ? 8 : 12;
+        ctx.lineWidth = smallScreen ? 8 : 12;
         ctx.strokeStyle = "#5d2b12";
       }
 
@@ -835,23 +834,12 @@ function fitTextToContainer(element, maxHeight, minSize = 12, maxSize = 48) {
   return bestFit;
 }
 
-function calculateSideBySideCanvasSize(
-  isMobile,
-  isTablet,
-  smallScreen,
-  stimText = false,
-  pairwise = false
-) {
+function calculateSideBySideCanvasSize(smallScreen, stimText = false, pairwise = false) {
   const totalWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
   const totalHeight = window.offsetHeight ? window.offsetHeight : window.innerHeight;
-  console.log(Math.min(totalHeight, window.screen.availHeight));
   // Define horizontal space allocation for each device type
   let widthPercent;
-  if (isMobile) {
-    widthPercent = 0.9; // 90% of screen width
-  } else if (isTablet) {
-    widthPercent = 0.8; // 80% of screen width
-  } else if (smallScreen) {
+  if (smallScreen) {
     widthPercent = totalHeight < 700 && pairwise ? 0.4 : 0.5; // Shorter screens need smaller images
   } else {
     // desktop
@@ -866,18 +854,11 @@ function calculateSideBySideCanvasSize(
   // So height = width / 2
   const canvasHeight = stimText ? canvasWidth / 1.8 : canvasWidth / 1.8;
 
-  console.log("Canvas size calculated:", {
-    device: isMobile ? "mobile" : isTablet ? "tablet" : smallScreen ? "laptop" : "desktop",
-    widthPercent,
-    canvasWidth,
-    canvasHeight,
-  });
-
   // jsPsych canvas_size is [height, width]
   return [Math.floor(canvasHeight), Math.floor(canvasWidth)];
 }
 
-function fitSideBySideToScreen(isMobile, isTablet, smallScreen, pairwise = false) {
+function fitSideBySideToScreen(smallScreen, pairwise = false) {
   const container = document.querySelector(".jspsych-content");
   if (!container) return;
 
@@ -902,7 +883,7 @@ function fitSideBySideToScreen(isMobile, isTablet, smallScreen, pairwise = false
   // Measure actual heights
   const canvasHeight = canvasStimulusContainer.offsetHeight;
   const buttonHeight = !buttonContainer ? 0 : buttonContainer.offsetHeight;
-  const margin = isMobile ? 40 : pairwise && smallScreen ? 120 : 20;
+  const margin = pairwise && smallScreen ? 120 : 20;
 
   // Calculate remaining space for prompt
   const promptHeight = totalHeight - canvasHeight - buttonHeight - margin;
@@ -930,13 +911,7 @@ function fitSideBySideToScreen(isMobile, isTablet, smallScreen, pairwise = false
     // Fit text to available space
     if (typeof fitTextToContainer === "function") {
       let minFontSize, maxFontSize;
-      if (isMobile) {
-        minFontSize = 36;
-        maxFontSize = 96;
-      } else if (isTablet) {
-        minFontSize = 40;
-        maxFontSize = 80;
-      } else if (smallScreen) {
+      if (smallScreen) {
         minFontSize = 24;
         maxFontSize = 64;
       } else {
@@ -950,7 +925,7 @@ function fitSideBySideToScreen(isMobile, isTablet, smallScreen, pairwise = false
   }
 }
 
-function fitSideBySideTrialToScreen(isMobile, isTablet, smallScreen, pairwise = false) {
+function fitSideBySideTrialToScreen(smallScreen, pairwise = false) {
   const container = document.querySelector(".jspsych-content");
   if (!container) return;
 
@@ -973,7 +948,7 @@ function fitSideBySideTrialToScreen(isMobile, isTablet, smallScreen, pairwise = 
   const canvasHeight = canvasElement.offsetHeight;
   const buttonHeight = !buttonContainer ? 0 : buttonContainer.offsetHeight;
   const promptHeight = promptContainer ? promptContainer.offsetHeight : 0;
-  const margin = isMobile ? 40 : pairwise && smallScreen ? 120 : 60;
+  const margin = pairwise && smallScreen ? 120 : 60;
 
   console.log("Current space allocation:", {
     totalHeight,
@@ -1006,13 +981,7 @@ function fitSideBySideTrialToScreen(isMobile, isTablet, smallScreen, pairwise = 
     // Fit text to available space
     if (typeof fitTextToContainer === "function") {
       let minFontSize, maxFontSize;
-      if (isMobile) {
-        minFontSize = 36;
-        maxFontSize = 96;
-      } else if (isTablet) {
-        minFontSize = 40;
-        maxFontSize = 80;
-      } else if (smallScreen) {
+      if (smallScreen) {
         minFontSize = 24;
         maxFontSize = 64;
       } else {
@@ -1039,10 +1008,10 @@ function fitSideBySideTrialToScreen(isMobile, isTablet, smallScreen, pairwise = 
   container.classList.add("ready");
 }
 
-function fitIntroOutroToScreen(isMobile, isTablet, smallScreen) {
+function fitIntroOutroToScreen(smallScreen) {
   const container = document.querySelector(".jspsych-content");
   if (!container) return;
-
+  container.classList.remove("ready");
   const totalHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
   // grab 3 sections
@@ -1060,7 +1029,7 @@ function fitIntroOutroToScreen(isMobile, isTablet, smallScreen) {
   }
 
   const buttonHeight = !buttonContainer ? 0 : buttonContainer.offsetHeight;
-  const margin = isMobile ? 60 : 80;
+  const margin = 80;
   const availableHeight = totalHeight - buttonHeight - margin;
   const stimulusAllocation = availableHeight * 0.9;
   const promptAllocation = availableHeight * 0.1;
@@ -1081,18 +1050,12 @@ function fitIntroOutroToScreen(isMobile, isTablet, smallScreen) {
     stimulusContainer.style.margin = "0 auto";
     stimulusContainer.style.textAlign = "center";
     stimulusContainer.style.padding = "20px";
-    stimulusContainer.style.maxWidth = isMobile ? "90%" : isTablet ? "90%" : "70%";
+    stimulusContainer.style.maxWidth = "70%";
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         let minFontSize, maxFontSize;
-        if (isMobile) {
-          minFontSize = 32;
-          maxFontSize = 96;
-        } else if (isTablet) {
-          minFontSize = 36;
-          maxFontSize = 96;
-        } else if (smallScreen) {
+        if (smallScreen) {
           minFontSize = 24;
           maxFontSize = 56;
         } else {
@@ -1128,13 +1091,7 @@ function fitIntroOutroToScreen(isMobile, isTablet, smallScreen) {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         let minFontSize, maxFontSize;
-        if (isMobile) {
-          minFontSize = 24;
-          maxFontSize = 48;
-        } else if (isTablet) {
-          minFontSize = 28;
-          maxFontSize = 56;
-        } else if (smallScreen) {
+        if (smallScreen) {
           minFontSize = 20;
           maxFontSize = 56;
         } else {

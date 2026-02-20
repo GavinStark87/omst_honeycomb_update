@@ -2,7 +2,7 @@
 //
 //   File: Login.js               Folder: components
 //
-//   Author: Honeycomb, Craig Stark, Audrey Hempel
+//   Author: Honeycomb, Craig Stark, Audrey Hempel, Gavin Stark
 //   --------------------
 //
 //   Changes:
@@ -33,6 +33,7 @@
 //        8/9/23  (AGH): updated for new 2x3 orderfiles, removed trialorder
 //                       state var and changed run to "sublist"
 //       6/10/24 (CELS): Added feedback option
+//       2/17/26 (GES): Added classic graphics option
 //
 //   --------------------
 //   This file creates a Login screen that logs in the participant
@@ -71,6 +72,7 @@ var twochoice;
 var selfpaced;
 var orderfile = "./jsOrders/cMST_Imbal2_orders_1_1_1";
 var resp_mode = "button";
+var classic_graphics = false;
 var lang;
 var language;
 var include_consent;
@@ -102,6 +104,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
   const [chooseStimset, setStimset] = useState("1");
   const [chooseSublist, setSublist] = useState("1");
   const [chooseRespmode, setRespmode] = useState("button");
+  const [classicGraphics, setClassicGraphics] = useState(false);
   const [chooseLang, setLang] = useState("English");
   const [chooseTwochoice, setTwochoice] = useState(false);
   const [chooseSelfpaced, setSelfpaced] = useState(false);
@@ -171,6 +174,9 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     // [resp_mode='']: Respond with buttons or keyboard? (default = button)
     resp_mode = chooseRespmode;
     console.log("respmode = " + chooseRespmode);
+
+    classic_graphics = classicGraphics;
+    console.log("classic graphics = " + classicGraphics);
 
     // [lang='']: Which language file? (default = English)
     if (chooseLang == "Spanish") {
@@ -242,6 +248,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     localStorage.setItem(`${studyId}_stimset`, chooseStimset);
     localStorage.setItem(`${studyId}_sublist`, chooseSublist);
     localStorage.setItem(`${studyId}_respmode`, chooseRespmode);
+    localStorage.setItem(`${studyId}_classicGraphics`, classicGraphics);
     localStorage.setItem(`${studyId}_lang`, chooseLang);
     localStorage.setItem(`${studyId}_twochoice`, chooseTwochoice);
     localStorage.setItem(`${studyId}_selfpaced`, chooseSelfpaced);
@@ -258,6 +265,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
       stimset: stim_set,
       sublist: sublist,
       respmode: resp_mode,
+      classicGraphics: classic_graphics,
       language: language,
       include_consent: include_consent,
       include_demog: include_demog,
@@ -386,6 +394,21 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
                         <option value="Korean">한국인</option>
                         <option value="Chinese">中文</option>
                         <option value="Russian">Pyccкий</option>
+                      </Form.Control>
+                    </Form.Group>
+                  </div>
+                </div>
+                <div className="graphics-options-container">
+                  <div className="graphics-options">
+                    <Form.Group controlId="graphics">
+                      <Form.Label>Graphics</Form.Label>
+                      <Form.Control
+                        as="select"
+                        value={classicGraphics}
+                        onChange={(e) => setClassicGraphics(e.target.value)}
+                      >
+                        <option value={false}>Neo</option>
+                        <option value={true}>Classic</option>
                       </Form.Control>
                     </Form.Group>
                   </div>
@@ -567,6 +590,7 @@ export {
   stim_set,
   sublist,
   resp_mode,
+  classic_graphics,
   lang,
   language,
   include_consent,

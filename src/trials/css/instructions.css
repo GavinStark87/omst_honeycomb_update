@@ -99,7 +99,7 @@
 }*/
 
 .jspsych-content.instructions {
-  visibility: visible !important;
+  visibility: hidden !important;
 }
 
 .jspsych-content.ready.instructions {
