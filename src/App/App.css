@@ -185,11 +185,6 @@ body.classic {
   height: 22px;
 }
 
-.mobile .radio-wrapper {
-  width: 30px;
-  height: 30px;
-}
-
 input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
@@ -245,26 +240,6 @@ input[type="radio"]:checked::after {
   background: black;
 }
 
-.mobile input[type="radio"] {
-  width: 30px;
-  height: 30px;
-  border: 4px solid #5d2b12;
-}
-
-.classic.mobile input[type="radio"] {
-  border-color: black;
-}
-
-.mobile input[type="radio"]:checked::after {
-  width: 17px;
-  height: 17px;
-}
-
-.mobile input[type="radio"] + label,
-.mobile .radio-text {
-  font-size: 16px;
-}
-
 .jspsych-display-element input[type="text"] {
   height: 24px;
   width: 240px;
@@ -301,11 +276,6 @@ input[type="radio"]:checked::after {
 
 .classic .jspsych-display-element input[type="text"]:focus-visible {
   border-color: black;
-}
-
-.mobile.jspsych-display-element input[type="text"] {
-  height: 48px;
-  font-size: 44px;
 }
 
 /* borrowing Bootstrap style for btn elements, but combining styles a bit */
@@ -389,16 +359,6 @@ input[type="radio"]:checked::after {
 .smallScreen .image-btn {
   width: 15vw !important;
   height: 10vw;
-}
-
-.mobile .image-btn {
-  width: 35vw;
-  height: 22vw;
-}
-
-.tablet .image-btn {
-  width: 25vw;
-  height: 15.5vw;
 }
 
 .image-btn-text {

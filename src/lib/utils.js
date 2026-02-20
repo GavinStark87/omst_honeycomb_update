@@ -433,8 +433,6 @@ function getDeviceType() {
   const aspectRatio = Math.max(width, height) / Math.min(width, height);
 
   const screenSize = Math.max(width, height);
-  const mobile = [true, false, false];
-  const tablet = [false, true, false];
   const laptop = [false, false, true];
   const desktop = [false, false, false];
 
@@ -443,68 +441,14 @@ function getDeviceType() {
   console.log("aspect ratio: " + aspectRatio.toFixed(2));
 
   if (screenSize >= 1920) {
-    if (isPortrait && aspectRatio >= 1.3 && aspectRatio <= 1.675) {
-      console.log("tablet (large)");
-      return tablet;
-    } else if (isPortrait) {
-      console.log("phone (large)");
-      return mobile;
-    }
     console.log("desktop");
     return desktop;
   }
 
   // Laptop range (typically 13-15 inch displays)
-  if (screenSize >= 1366 && screenSize < 1920) {
-    // Large tablets in portrait can reach this size, use aspect ratio
-    if (isPortrait && aspectRatio >= 1.3 && aspectRatio <= 1.6) {
-      console.log("tablet (large)");
-      return tablet;
-    } else if (isPortrait) {
-      console.log("phone (large)");
-      return mobile;
-    }
+  if (screenSize < 1920) {
     console.log("laptop");
     return laptop;
-  }
-
-  // Medium screens (tablets vs small laptops)
-  if (screenSize >= 1024 && screenSize < 1366) {
-    if (isPortrait && aspectRatio >= 1.3 && aspectRatio <= 1.6) {
-      console.log("tablet");
-      return tablet;
-    } else if (isPortrait) {
-      console.log("phone (large)");
-      return mobile;
-    } else {
-      console.log("laptop");
-      return laptop;
-    }
-  }
-
-  // Small to medium screens - THIS IS THE KEY RANGE
-  // Use aspect ratio to distinguish phones from tablets
-  if (screenSize >= 768 && screenSize < 1024) {
-    // Phones have more elongated screens (taller/narrower)
-    // aspectRatio >= 1.7 suggests a phone
-    if (aspectRatio >= 1.7) {
-      console.log("mobile");
-      return mobile;
-    } else {
-      console.log("tablet (small)");
-      return tablet;
-    }
-  }
-
-  // Smaller screens - but check aspect ratio still
-  if (screenSize < 768) {
-    // Small tablets might be here with squarer aspect ratios
-    if (aspectRatio < 1.5 && screenSize >= 600) {
-      console.log("tablet (very small)");
-      return tablet;
-    }
-    console.log("mobile");
-    return mobile;
   }
 
   // Fallback

@@ -2,13 +2,6 @@
   font-size: 1.6em;
 }
 
-.mobile.instructions .image-btn-text text {
-  font-size: 1.5em;
-}
-.mobile.instructions .image-btn-text .text-stroke {
-  stroke-width: 12;
-}
-
 .instructions .image-btn-text.kr text,
 .instructions .image-btn-text.ru text {
   font-size: 0.9em;
@@ -20,44 +13,6 @@
 
 .instructions .image-btn-text.nl text {
   font-size: 0.9em;
-}
-
-.mobile.instructions .image-btn-text.kr text,
-.mobile.instructions .image-btn-text.nl text {
-  font-size: 0.8em;
-}
-.mobile.instructions .image-btn-text.kr .text-stroke,
-.mobile.instructions .image-btn-text.nl .text-stroke {
-  stroke-width: 8;
-}
-
-.mobile.instructions .image-btn-text.ru text {
-  font-size: 1.2em;
-}
-.mobile.instructions .image-btn-text.ru .text-stroke {
-  stroke-width: 12;
-}
-
-.tablet.instructions .image-btn-text text {
-  font-size: 1.5em;
-}
-
-.tablet.instructions .image-btn-text.kr text {
-  font-size: 1em;
-}
-.tablet.instructions .image-btn-text.kr .text-stroke {
-  stroke-width: 8;
-}
-
-.tablet.instructions .image-btn-text.nl text {
-  font-size: 0.9em;
-}
-.tablet.instructions .image-btn-text.nl .text-stroke {
-  stroke-width: 8;
-}
-
-.tablet .image-btn-text.ru text {
-  font-size: 1.2em;
 }
 
 .jspsych-content.instructions {

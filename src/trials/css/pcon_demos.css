@@ -2,13 +2,6 @@
   font-size: 1.5em;
 }
 
-.mobile.pcon-demos .image-btn-text text {
-  font-size: 1.5em;
-}
-.mobile.pcon-demos .image-btn-text .text-stroke {
-  stroke-width: 12;
-}
-
 .pcon-demos .image-btn-text.kr text {
   font-size: 1.2em;
 }
@@ -16,52 +9,9 @@
 .pcon-demos .image-btn-text.ru text {
   font-size: 0.9em;
 }
-.mobile.pcon-demos .image-btn-text.ru .text-stroke {
-  stroke-width: 8;
-}
 
 .pcon-demos .image-btn-text.nl text {
   font-size: 0.8em;
-}
-.mobile.pcon-demos .image-btn-text.nl .text-stroke {
-  stroke-width: 8;
-}
-
-.mobile.pcon-demos .image-btn-text.es text {
-  font-size: 1.4em;
-}
-
-.mobile.pcon-demos .image-btn-text.kr text {
-  font-size: 1.2em;
-}
-
-.mobile.pcon-demos .image-btn-text.nl text {
-  font-size: 0.8em;
-}
-.mobile.pcon-demos .image-btn-text.nl .text-stroke {
-  stroke-width: 8;
-}
-
-.mobile.pcon-demos .image-btn-text.ru text {
-  font-size: 0.8em;
-}
-.mobile.pcon-demos .image-btn-text.ru .text-stroke {
-  stroke-width: 8;
-}
-
-.tablet.pcon-demos .image-btn-text.kr text {
-  font-size: 1.2em;
-}
-
-.tablet.pcon-demos .image-btn-text.ru text {
-  font-size: 0.8em;
-}
-.tablet.pcon-demos .image-btn-text.ru .text-stroke {
-  stroke-width: 8;
-}
-
-.mobile.pcon-demos .prompt_text {
-  font-size: 2em;
 }
 
 .smallScreen.pcon-demos .jspsych-categorize-image-buttons-stimulus {
@@ -71,14 +21,6 @@
 .pcon-demos #jspsych-animation-image {
   width: 25vw;
   height: auto;
-}
-
-.tablet.pcon-demos #jspsych-animation-image {
-  width: 50vw;
-}
-
-.mobile.pcon-demos #jspsych-animation-image {
-  width: 75vw;
 }
 
 .smallScreen .pcon-demos #jspsych-animation-image {
