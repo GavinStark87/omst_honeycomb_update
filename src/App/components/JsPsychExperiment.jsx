@@ -1,69 +1,167 @@
+//*******************************************************************
+//
+//   File: JsPsychExperiment.js               Folder: components
+//
+//   Author: Honeycomb, Audrey Hempel
+//   --------------------
+//
+//   Changes:
+//        7/13/23 (AGH): deleted start_date and task_version from
+//                       added properties
+//        7/21/23 (AGH): added dataCalcFunction from contOmst to
+//                       on_finish in combinedOptions
+//        7/24/23 (AGH): modified on_finish to update the data with
+//                       the added summary so it saves to the json
+//                       file
+//                       added endDate to record the time the
+//                       experiment ends
+//        8/1/23 (AGH):  added pconDataCalcFunction to on_finish in
+//                       in combinedOptions to add pcon data summary
+//                       to the data file
+//       6/10/24 (CELS): Passing jsPsych to buildTimeline
+//
+//   --------------------
+//   This file holds the experiment, adds properties and builds the
+//   timelines
+//
+//*******************************************************************
+
+//----------------------- 1 ----------------------
+//-------------------- IMPORTS -------------------
+
 import { initJsPsych } from "jspsych";
+import React, { useEffect, useMemo, useRef } from "react";
+
 import PropTypes from "prop-types";
-import React from "react";
 
-import { config, taskVersion } from "../../config/main";
-import { buildTimeline, jsPsychOptions } from "../../experiment";
+import { config } from "../../config/main";
 import { initParticipant } from "../deployments/firebase";
+import { buildTimeline, jsPsychOptions } from "../../timelines/main";
+import { dataCalcFunction } from "../../trials/contOmst";
+import { pconDataCalcFunction } from "../../trials/pcon_demos";
+import { getFormattedDate } from "../../lib/utils";
+import { include_pcon , include_pairwise } from "./Login";
 
-// ID used to identify the DOM element that holds the experiment.
-const EXPERIMENT_ID = "experiment-window";
+//----------------------- 2 ----------------------
+//-------------------- JSPSYCH -------------------
 
-export default function JsPsychExperiment({
-  studyID,
-  participantID,
+function JsPsychExperiment({
+  participantId,
+  studyId,
+  taskVersion,
   dataUpdateFunction,
   dataFinishFunction,
+  height = "100%",
+  width = "100%",
 }) {
-  /**
-   * Create the instance of JsPsych whenever the studyID or participantID changes, which occurs then the user logs in.
-   *
-   * This instance of jsPsych is passed to any trials that need it when the timeline is built.
-   */
-  const jsPsych = React.useMemo(() => {
-    // Start date of the experiment - used as the UID of the session
+  // This will be the div in the dom that holds the experiment.
+  // We reference it explicitly here so we can do some plumbing with react, jspsych, and events.
+  const experimentDivId = "experimentWindow";
+  const experimentDiv = useRef(null);
+
+  // Combine custom options imported from timelines/maine.js, with necessary Honeycomb options.
+  const combinedOptions = {
+    ...jsPsychOptions,
+    display_element: experimentDivId,
+    on_data_update: (data) => dataUpdateFunction(data),
+    on_finish: (data) => {
+      var pconsummary = null;
+      var pairwisesummary = null;
+      if (include_pcon) {
+        pconsummary = pconDataCalcFunction(data);
+      } else if (include_pairwise) {
+        pairwisesummary = pconDataCalcFunction(data);
+      }
+      const contsummary = dataCalcFunction(data);
+      const summary = { pconsummary, pairwisesummary, contsummary };
+      const end_date = getFormattedDate(new Date());
+      dataUpdateFunction({ summary, end_date });
+      const dataWithSummary = { ...data, summary, end_date };
+      console.log("type of dataWithSummary:", dataWithSummary);
+      console.log("type of data:", data);
+      console.log("type of data.get():", jsPsych.data.get());
+      dataFinishFunction(data);
+    },
+  };
+
+  // Create the instance of jsPsych that we'll reuse within the scope of this JsPsychExperiment component.
+  // As of jspsych 7, we create our own jspsych instance(s) where needed instead of importing one global instance.
+  const jsPsych = useMemo(() => {
+    // Start date of the experiment - used as the UID
+    // TODO 169: JsPsych has a built in timestamp function
     const startDate = new Date().toISOString();
 
     // Write the initial record to Firestore
-    if (config.USE_FIREBASE) initParticipant(studyID, participantID, startDate);
+    if (config.USE_FIREBASE) initParticipant(participantId, studyId, startDate);
 
-    const jsPsych = initJsPsych({
-      // Combine necessary Honeycomb options with custom ones (src/timelines/main.js)
-      ...jsPsychOptions,
-      display_element: EXPERIMENT_ID,
-      on_data_update: (data) => {
-        jsPsychOptions.on_data_update && jsPsychOptions.on_data_update(data); // Call custom on_data_update function (if provided)
-        dataUpdateFunction(data); // Call Honeycomb's on_data_update function
-      },
-      on_finish: (data) => {
-        jsPsychOptions.on_finish && jsPsychOptions.on_finish(data); // Call custom on_finish function (if provided)
-        dataFinishFunction(data); // Call Honeycomb's on_finish function
-      },
-    });
-
-    // Adds experiment data into jsPsych directly. These properties will be added to all trials
+    const jsPsych = initJsPsych(combinedOptions);
+    // Add experiment properties into jsPsych directly
     jsPsych.data.addProperties({
-      study_id: studyID,
-      participant_id: participantID,
-      start_date: startDate,
-      task_version: taskVersion,
+      study_id: studyId,
+      participant_id: participantId,
     });
-
     return jsPsych;
-  }, [studyID, participantID]);
+  }, [participantId, studyId, taskVersion]);
 
-  /** Build and run the experiment timeline */
-  React.useEffect(() => {
-    const timeline = buildTimeline(jsPsych, studyID, participantID);
+  // Build our jspsych experiment timeline (in this case a Honeycomb demo, you could substitute your own here).
+  const timeline = buildTimeline(jsPsych, studyId, participantId);
+
+  // Set up event and lifecycle callbacks to start and stop jspsych.
+  // Inspiration from jspsych-react: https://github.com/makebrainwaves/jspsych-react/blob/master/src/index.js
+  const handleKeyEvent = (e) => {
+    if (e.redispatched) return;
+
+    const newEvent = new e.constructor(e.type, e);
+    newEvent.redispatched = true;
+    experimentDiv.current.dispatchEvent(newEvent);
+  };
+
+  // These useEffect callbacks are similar to componentDidMount / componentWillUnmount.
+  // If necessary, useLayoutEffect callbacks might be even more similar.
+  useEffect(() => {
+    window.addEventListener("keyup", handleKeyEvent, true);
+    window.addEventListener("keydown", handleKeyEvent, true);
     jsPsych.run(timeline);
-  }, [jsPsych]);
 
-  return <div id={EXPERIMENT_ID} />;
+    return () => {
+      window.removeEventListener("keyup", handleKeyEvent, true);
+      window.removeEventListener("keydown", handleKeyEvent, true);
+      // Only end if the experiment is still running
+      if (jsPsych && typeof jsPsych.endExperiment === "function") {
+        try {
+          // Check if experiment is actually running before ending
+          if (jsPsych.data && jsPsych.data.get) {
+            jsPsych.endExperiment("Ended Experiment");
+          }
+        } catch {
+          // Silently catch if already ended - this is expected behavior
+          console.log("Experiment already ended");
+        }
+      }
+    };
+  }, []); // Empty dependency array ensures this runs only on mount and unmount.
+
+  return (
+    <div className="App">
+      <div id={experimentDivId} style={{ height, width }} ref={experimentDiv} />
+    </div>
+  );
 }
 
+//----------------------- 3 ----------------------
+//------------------- PROP TYPES ------------------
+
 JsPsychExperiment.propTypes = {
-  studyID: PropTypes.string,
-  participantID: PropTypes.string,
-  dataUpdateFunction: PropTypes.func,
-  dataFinishFunction: PropTypes.func,
+  participantId: PropTypes.string.isRequired,
+  studyId: PropTypes.string.isRequired,
+  taskVersion: PropTypes.string.isRequired,
+  dataUpdateFunction: PropTypes.func.isRequired,
+  dataFinishFunction: PropTypes.func.isRequired,
+  height: PropTypes.string,
+  width: PropTypes.string,
 };
+
+//----------------------- 4 ----------------------
+//-------------------- EXPORTS -------------------
+
+export default JsPsychExperiment;

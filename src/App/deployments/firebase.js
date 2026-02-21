@@ -1,32 +1,33 @@
-// TODO @brown-ccv #183: Upgrade to modular SDK instead of compat
 import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
 
+// TODO 183: Upgrade to modular SDK instead of compat
+
 // Initialize Firebase and Firestore
 firebase.initializeApp({
-  apiKey: process.env.REACT_APP_API_KEY,
-  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_PROJECT_ID ?? "no-firebase",
-  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_APP_ID,
+  apiKey: process.env.REACT_APP_apiKey,
+  authDomain: process.env.REACT_APP_authDomain,
+  databaseURL: process.env.REACT_APP_databaseURL,
+  projectId: process.env.REACT_APP_projectId || "no-firebase",
+  storageBucket: process.env.REACT_APP_storageBucket,
+  messagingSenderId: process.env.REACT_APP_messagingSenderId,
+  appId: process.env.REACT_APP_appId,
 });
-export const db = firebase.firestore();
+const db = firebase.firestore();
 
 // Use emulator if on localhost
+// TODO 173: Refactor to use NODE_ENV
 if (window.location.hostname === "localhost") db.useEmulator("localhost", 8080);
 
 // Get a reference to the Firebase document at
 // "/participant_responses/{studyID}/participants/{participantID}"
-function getParticipantRef(studyID, participantID) {
-  return db.doc(`participant_responses/${studyID}/participants/${participantID}`);
-}
+const getParticipantRef = (studyID, participantID) =>
+  db.doc(`participant_responses/${studyID}/participants/${participantID}`);
 
 // Get a reference to the Firebase document at
 // "/participant_responses/{studyID}/participants/{participantID}/data/{startDate}"
-export function getExperimentRef(studyID, participantID, startDate) {
-  return db.doc(`${getParticipantRef(studyID, participantID).path}/data/${startDate}`);
-}
+const getExperimentRef = (studyID, participantID, startDate) =>
+  db.doc(`${getParticipantRef(studyID, participantID).path}/data/${startDate}`);
 
 /**
  * Validate the given studyID & participantID combo
@@ -34,7 +35,7 @@ export function getExperimentRef(studyID, participantID, startDate) {
  * @param {string} participantID The ID of a given participant inside the studyID
  * @returns true if the given studyID & participantID combo is in Firebase, false otherwise
  */
-export async function validateParticipant(studyID, participantID) {
+async function validateParticipant(studyID, participantID) {
   try {
     // .get() will fail on an invalid path
     await getParticipantRef(studyID, participantID).get();
@@ -53,16 +54,15 @@ export async function validateParticipant(studyID, participantID) {
  * @param {string} startDate The ID of a given participant inside the studyID and participantID
  * @returns true if able to initialize the new experiment, false otherwise
  */
-export async function initParticipant(studyID, participantID, startDate) {
+async function initParticipant(studyID, participantID, startDate) {
   try {
     const experiment = getExperimentRef(studyID, participantID, startDate);
     await experiment.set({
-      // TODO @brown-ccv #394: Write GIT SHA here
-      // TODO @brown-ccv #394: Store participantID and studyID here, not on each trial
       start_time: startDate,
-      // TODO @brown-ccv #394: app_version and app_platform are deprecated
+      // TODO 173: app_version and app_platform are deprecated
       app_version: window.navigator.appVersion,
       app_platform: window.navigator.platform,
+      // TODO 175: Store participantID and studyID here, not on each trial
     });
     console.log("Initialized experiment:", studyID, participantID, startDate);
     return true;
@@ -77,7 +77,7 @@ export async function initParticipant(studyID, participantID, startDate) {
  * Each trial is its own document in the "trials" subcollection
  * @param {any} data The JsPsych data object from a single trial
  */
-export async function addToFirebase(data) {
+async function addToFirebase(data) {
   const studyID = data.study_id;
   const participantID = data.participant_id;
   const startDate = data.start_date;
@@ -89,3 +89,6 @@ export async function addToFirebase(data) {
     console.error("Unable to add trial:\n", error);
   }
 }
+
+export { db, getExperimentRef, validateParticipant, initParticipant, addToFirebase };
+export default firebase;

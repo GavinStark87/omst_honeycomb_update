@@ -1,22 +1,15 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
-// Import css styling
 import "@fortawesome/fontawesome-free/css/all.css";
 import "bootstrap/dist/css/bootstrap.css";
-import "./index.css";
+import "./App.css";
 
-// Import configurations and utilities
-import { config, SETTINGS, turkUniqueId } from "../config/main";
-import * as trigger from "../config/trigger";
-import { getProlificId, getSearchParam } from "../lib/utils";
-
-// Import deployment functions
-import { addToFirebase, validateParticipant } from "./deployments/firebase";
-
-// Import React components
-import Error from "./components/Error";
 import JsPsychExperiment from "./components/JsPsychExperiment";
-import Login from "./components/Login";
+import { Login } from "./components/Login";
+
+import { config, taskVersion, turkUniqueId } from "../config/main";
+import { addToFirebase, validateParticipant } from "./deployments/firebase";
+import { getProlificId } from "../lib/utils";
 
 /**
  * The top-level React component for Honeycomb. App handles initiating the jsPsych component when the participant
@@ -27,102 +20,102 @@ import Login from "./components/Login";
  * about functional vs. class components here: https://reactjs.org/docs/components-and-props.html. It is recommended
  * to use functional components.
  */
-export default function App() {
+function App() {
   // Manage if a user is currently logged in
-  const [loggedIn, setLoggedIn] = React.useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   // Manage error state of the app
-  const [isError, setIsError] = React.useState(false);
+  const [isError, setIsError] = useState(false);
 
+  // Manage the electron renderer
+  const [ipcRenderer, setIpcRenderer] = useState();
   // Manage the psiturk object
-  const [psiturk, setPsiturk] = React.useState(false);
+  const [psiturk, setPsiturk] = useState(false);
 
   // Manage the data used in the experiment
-  const [participantID, setParticipantID] = React.useState("");
-  const [studyID, setStudyID] = React.useState("");
+  const [participantID, setParticipantID] = useState("");
+  const [studyID, setStudyID] = useState("");
 
   // Manage the method type being used ("desktop", "firebase", "mturk", or "default")
-  const [currentMethod, setMethod] = React.useState("default");
+  const [currentMethod, setMethod] = useState("default");
 
   /**
    * This effect is called once, on the first render of the application
    * It checks the environment variables to initialize needed state variables
    * And determines which methods to be using
    */
-  React.useEffect(() => {
-    async function setUpHoneycomb() {
-      // For testing and debugging purposes
-      console.log({
-        "Honeycomb Configuration": config,
-        "Task Settings": SETTINGS,
-      });
+  useEffect(() => {
+    // For testing and debugging purposes
+    //console.log(config);
 
-      // If on desktop
-      if (config.USE_ELECTRON) {
-        // TODO @brown-ccv #443 : Pass NODE_ENV here as well
-        await window.electronAPI.setConfig(config); // Pass config to Electron ipcMain
-        await window.electronAPI.setTrigger(trigger); // Pass trigger to Electron ipcMain
+    // If on desktop
+    if (config.USE_ELECTRON) {
+      const { ipcRenderer } = window.require("electron");
+      setIpcRenderer(ipcRenderer);
 
-        // Fill in login fields based on environment variables (may still be blank)
-        const credentials = await window.electronAPI.getCredentials();
-        if (credentials.participantID) setParticipantID(credentials.participantID);
-        if (credentials.studyID) setStudyID(credentials.studyID);
-        setMethod("desktop");
-      } else {
-        // If MTURK
-        if (config.USE_MTURK) {
-          /* eslint-disable */
-          window.lodash = _.noConflict();
-          setPsiturk(new PsiTurk(turkUniqueId, "/complete"));
-          setMethod("mturk");
-          handleLogin("mturk", turkUniqueId);
-          /* eslint-enable */
-        } else if (config.USE_PROLIFIC) {
-          const pID = getProlificId();
-          if (config.USE_FIREBASE && pID) {
-            setMethod("firebase");
-            handleLogin("prolific", pID);
-          } else {
-            // Error - Prolific must be used with Firebase
-            setIsError(true);
-          }
-        } else if (config.USE_FIREBASE) {
-          // Fill in login fields based on query parameters (may still be blank)
-          const maybeStudyID = getSearchParam("studyID");
-          const maybeParticipantID = getSearchParam("participantID");
-          if (maybeStudyID !== null) setStudyID(maybeStudyID);
-          if (maybeParticipantID !== null) setParticipantID(maybeParticipantID);
+      // TODO: I don't think this is using the ipcRenderer from state? Is that okay?
+      ipcRenderer.send("updateEnvironmentVariables", config);
+      // Fill in login fields based on environment variables (may still be blank)
+      const credentials = ipcRenderer.sendSync("syncCredentials");
+      if (credentials.participantID) setParticipantID(credentials.participantID);
+      if (credentials.studyID) setStudyID(credentials.studyID);
 
+      setMethod("desktop");
+    } else {
+      // If MTURK
+      if (config.USE_MTURK) {
+        /* eslint-disable */
+        window.lodash = _.noConflict()
+        setPsiturk(new PsiTurk(turkUniqueId, '/complete'))
+        setMethod('mturk')
+        // TODO 145: Function signature
+        handleLogin('mturk', turkUniqueId)
+        /* eslint-enable */
+      } else if (config.USE_PROLIFIC) {
+        const pID = getProlificId();
+        if (config.USE_FIREBASE && pID) {
           setMethod("firebase");
+          // TODO 145: Function signature
+          handleLogin("prolific", pID);
         } else {
-          setMethod("default");
+          // Error - Prolific must be used with Firebase
+          setIsError(true);
         }
+      } else if (config.USE_FIREBASE) {
+        // Fill in login fields based on query parameters (may still be blank)
+        const query = new URLSearchParams(window.location.search);
+        const participantId = query.get("participantID");
+        const studyId = query.get("studyID");
+        if (participantId) setParticipantID(participantId);
+        if (studyId) setStudyID(studyId);
+
+        setMethod("firebase");
+      } else {
+        setMethod("default");
       }
     }
-    setUpHoneycomb();
-  }, []);
+    // eslint-disable-next-line
+  }, [])
 
   /** VALIDATION FUNCTIONS */
 
   // Default to valid
   const defaultValidation = async () => true;
   // Validate participant/study against Firestore rules
-  const firebaseValidation = (studyId, participantId) => {
-    return validateParticipant(studyId, participantId);
+  const firebaseValidation = (participantId, studyId) => {
+    return validateParticipant(participantId, studyId);
   };
 
   /** DATA WRITE FUNCTIONS */
 
-  // Default to no operation
   const defaultFunction = () => {};
-  // Add trial data to Firestore (see src/App/deployments/firebase.js)
+  // Add trial data to Firestore
   const firebaseUpdateFunction = (data) => {
     addToFirebase(data);
   };
-  // Execute the 'on_data_update' callback function (see public/electron/main.js)
-  const desktopUpdateFunction = async (data) => {
-    await window.electronAPI.on_data_update(data);
+  // Execute the 'data' callback function (see public/electron.js)
+  const desktopUpdateFunction = (data) => {
+    ipcRenderer.send("data", data);
   };
-  // Save the trial data to PsiTurk
   const psiturkUpdateFunction = (data) => {
     psiturk.recordTrialData(data);
   };
@@ -131,15 +124,13 @@ export default function App() {
 
   // Save the experiment data on the desktop
   const defaultFinishFunction = (data) => {
-    data.localSave("csv", "task.csv");
+    data.localSave("csv", "omst.csv");
   };
-  // Do nothing
-  const firebaseFinishFunction = () => {};
-  // Execute the 'on_finish' callback function (see public/electron/main.js)
-  const desktopFinishFunction = async () => {
-    await window.electronAPI.on_finish();
+
+  // Execute the 'end' callback function (see public/electron.js)
+  const desktopFinishFunction = () => {
+    ipcRenderer.send("end", "true");
   };
-  // Complete the PsiTurk experiment
   const psiturkFinishFunction = () => {
     const completePsiturk = async () => {
       psiturk.saveData({
@@ -150,58 +141,63 @@ export default function App() {
     completePsiturk();
   };
 
-  /**
-   * Callback function executed when the user logs in.
-   *
-   * The study and participant IDs are updated and loggedIn is set to true.
-   */
-  const handleLogin = React.useCallback((studyId, participantId) => {
-    setStudyID(studyId);
+  // Update the study/participant data when they log in
+  const handleLogin = useCallback((participantId, studyId) => {
     setParticipantID(participantId);
+    setStudyID(studyId);
     setLoggedIn(true);
   }, []);
 
   if (isError) {
-    return <Error />;
+    return (
+      <div className="centered-h-v">
+        <div className="width-50 alert alert-danger">
+          Please ask your task provider to enable firebase.
+        </div>
+      </div>
+    );
   } else {
-    if (loggedIn) {
-      return (
-        <JsPsychExperiment
-          studyID={studyID}
-          participantID={participantID}
-          dataUpdateFunction={
-            {
-              desktop: desktopUpdateFunction,
-              firebase: firebaseUpdateFunction,
-              mturk: psiturkUpdateFunction,
-              default: defaultFunction,
-            }[currentMethod]
-          }
-          dataFinishFunction={
-            {
-              desktop: desktopFinishFunction,
-              mturk: psiturkFinishFunction,
-              firebase: firebaseFinishFunction,
-              default: defaultFinishFunction,
-            }[currentMethod]
-          }
-        />
-      );
-    } else {
-      return (
-        <Login
-          initialStudyID={studyID}
-          initialParticipantID={participantID}
-          validationFunction={
-            {
-              desktop: defaultValidation,
-              default: defaultValidation,
-              firebase: firebaseValidation,
-            }[currentMethod]
-          }
-          handleLogin={handleLogin}
-        />
-      );
-    }
+    return (
+      <>
+        {loggedIn ? (
+          <JsPsychExperiment
+            participantId={participantID}
+            studyId={studyID}
+            taskVersion={taskVersion}
+            dataUpdateFunction={
+              {
+                desktop: desktopUpdateFunction,
+                firebase: firebaseUpdateFunction,
+                mturk: psiturkUpdateFunction,
+                default: defaultFunction,
+              }[currentMethod]
+            }
+            dataFinishFunction={
+              {
+                desktop: desktopFinishFunction,
+                mturk: psiturkFinishFunction,
+                firebase: defaultFunction,
+                default: defaultFinishFunction,
+              }[currentMethod]
+            }
+          />
+        ) : (
+          <Login
+            validationFunction={
+              {
+                desktop: defaultValidation,
+                default: defaultValidation,
+                firebase: firebaseValidation,
+              }[currentMethod]
+            }
+            initialParticipantID={participantID}
+            initialStudyID={studyID}
+            handleLogin={handleLogin}
+          />
+        )}
+      </>
+    );
   }
 }
+
+export default App;

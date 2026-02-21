@@ -1,0 +1,16 @@
+.cont-omst .image-btn-text text {
+  font-size: 1.5em;
+}
+
+.cont-omst .image-btn-text.kr text,
+.cont-omst .image-btn-text.ru text {
+  font-size: 0.9em;
+}
+.cont-omst .image-btn-text.kr .text-stroke,
+.cont-omst .image-btn-text.ru .text-stroke {
+  stroke-width: 8;
+}
+
+.cont-omst .image-btn-text.nl text {
+  font-size: 0.9em;
+}

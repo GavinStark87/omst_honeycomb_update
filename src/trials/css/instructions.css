@@ -1,0 +1,62 @@
+.instructions .image-btn-text text {
+  font-size: 1.6em;
+}
+
+.instructions .image-btn-text.kr text,
+.instructions .image-btn-text.ru text {
+  font-size: 0.9em;
+}
+.instructions .image-btn-text.kr .text-stroke,
+.instructions .image-btn-text.ru .text-stroke {
+  stroke-width: 8;
+}
+
+.instructions .image-btn-text.nl text {
+  font-size: 0.9em;
+}
+
+.jspsych-content.instructions {
+  height: 100svh;
+  width: 100svw;
+  justify-content: space-around;
+  align-content: space-around;
+}
+
+.jspsych-content.ready.instructions {
+  opacity: 1;
+}
+
+.instructions .jspsych-categorize-image-buttons-stimulus {
+  flex-shrink: 0;
+  margin: 10px auto !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.instructions .prompt-container {
+  flex-grow: 1;
+  width: 100%;
+  min-height: 30px;
+}
+
+.instructions .prompt_text {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/*.jspsych-content {
+  visibility: hidden !important;
+}*/
+
+.jspsych-content.instructions {
+  visibility: hidden !important;
+}
+
+.jspsych-content.ready.instructions {
+  visibility: visible !important;
+}

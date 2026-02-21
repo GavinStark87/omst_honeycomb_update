@@ -1,55 +1,88 @@
-/**
- * This is the main configuration file where universal and default settings should be placed.
- * These setting can then be imported anywhere in the app
- */
+//*******************************************************************
+//
+//   File: main.js               Folder: config
+//
+//   Author: Honeycomb, Audrey Hempel
+//   --------------------
+//
+//   Changes:
+//        6/20/23 (AGH): removed language selection to /trials/selectLanguage.js
+//        5/9/24 (CELS): Added bit to fix the order of the oMST
+//
+//   --------------------
+//   This is the main configuration file where universal and default settings
+//   should be placed. These settins can then be imported anywhere in the app
+//   as they are exported at the botom of the file.
+//
+//*******************************************************************
+
+//----------------------- 1 ----------------------
+//-------------------- IMPORTS -------------------
+
 import { initJsPsych } from "jspsych";
-
-import packageInfo from "../../package.json";
+import { init } from "@brown-ccv/behavioral-task-trials";
 import { getProlificId } from "../lib/utils";
+import packageInfo from "../../package.json";
+import _ from "lodash";
 
-import language from "./language.json";
-import settings from "./settings.json";
+//----------------------- 2 ----------------------
+//--------------- HONEYCOMB CONFIGS --------------
 
-// TODO @brown-ccv #363: Separate into index.js (for exporting) and env.js
+// Access package name and version so we can store these as facts with task data.
+const taskName = packageInfo.name;
+const taskVersion = packageInfo.version;
+console.log("Task version", taskVersion);
 
-// Re-export the package name and version
-export const taskName = packageInfo.name;
-export const taskVersion = packageInfo.version;
-
-// Re-export the language object
-// TODO @brown-ccv #373: Save language in Firebase
-export const LANGUAGE = language;
-// Re-export the settings object
-// TODO @brown-ccv #374: Save settings in Firebase
-export const SETTINGS = settings;
-
-/**
- *
- * As of jspsych 7, we instantiate jsPsych where needed instead of importing it globally.
- * The instance here gives access to utils in jsPsych.turk, for awareness of the mturk environment, if any.
- * The actual task and related utils will use a different instance of jsPsych created after login.
- * TODO @brown-ccv #395: Use instance from jsPsychExperiment
- */
+// As of jspsych 7, we instantiate jsPsych where needed instead of importing it globally.
+// The instance here gives access to utils in jsPsych.turk, for awareness of the mturk environment, if any.
+// The actual task and related utils will use a different instance of jsPsych created after login.
 const jsPsych = initJsPsych();
 
-// Whether or not the experiment is running on mechanical turk
-// TODO @brown-ccv #395: Deprecate PsiTurk and MTurk
+// mapping of letters to key codes
+const keys = {
+  A: 65,
+  B: 66,
+  C: 67,
+  F: 70,
+  J: 74,
+  space: 32,
+};
+
+// is this mechanical turk?
 const turkInfo = jsPsych.turk.turkInfo();
 const USE_MTURK = !turkInfo.outsideTurk;
-export const turkUniqueId = `${turkInfo.workerId}:${turkInfo.assignmentId}`; // ID of the user in mechanical turk
+const turkUniqueId = `${turkInfo.workerId}:${turkInfo.assignmentId}`; // ID of the user in mechanical turk
 
-const USE_ELECTRON = window.electronAPI !== undefined; // Whether or not the experiment is running in Electron (local app)
+// Whether or not the experiment is running in Electron (local app)
+let USE_ELECTRON = true;
+try {
+  window.require("electron");
+} catch {
+  USE_ELECTRON = false;
+}
+
 const USE_PROLIFIC = (getProlificId() && !USE_MTURK) || false; // Whether or not the experiment is running with Prolific
 const USE_FIREBASE = process.env.REACT_APP_FIREBASE === "true"; // Whether or not the experiment is running in Firebase (web app)
 
-const USE_VOLUME = process.env.REACT_APP_VOLUME === "true"; // Whether or not to use audio cues in the task
-const USE_CAMERA = process.env.REACT_APP_VIDEO === "true" && USE_ELECTRON; // Whether or not to use video recording
-// TODO @brown-ccv #341: Remove USE_EEG - separate variables for USE_PHOTODIODE and USE_EVENT_MARKER
-const USE_EEG = process.env.REACT_APP_USE_EEG === "true" && USE_ELECTRON; // Whether or not the EEG/event marker is available (TODO @brown-ccv: This is only used for sending event codes)
+const USE_VOLUME = process.env.REACT_APP_VOLUME === "true"; // whether or not to ask the participant to adjust the volume
+const USE_CAMERA = process.env.REACT_APP_VIDEO === "true" && USE_ELECTRON; // whether or not to enable video
+const USE_EEG = process.env.REACT_APP_USE_EEG === "true" && USE_ELECTRON; // whether or not the EEG/event marker is available
 const USE_PHOTODIODE = process.env.REACT_APP_USE_PHOTODIODE === "true" && USE_ELECTRON; // whether or not the photodiode is in use
 
-// Configuration object for Honeycomb
-export const config = {
+const defaultBlockSettings = {
+  randomize_order: false,
+  // FIX -- this really is vestigial
+  conditions: ["a", "b", "c"],
+  repeats_per_condition: 1, // number of times every condition is repeated
+  is_practice: false,
+  is_tutorial: false,
+  photodiode_active: false,
+};
+
+/**
+ * Configuration object for Honeycomb
+ */
+const config = init({
   USE_PHOTODIODE,
   USE_EEG,
   USE_ELECTRON,
@@ -58,4 +91,43 @@ export const config = {
   USE_CAMERA,
   USE_PROLIFIC,
   USE_FIREBASE,
+});
+
+//----------------------- 3 ----------------------
+//-------------------- EXPORTS -------------------
+
+/** Determine the task settings to be used   */
+
+// Honeycomb's default task settings
+let taskSettings = {
+  fixation: {
+    durations: [250, 500, 750, 1000, 1250, 1500, 1750, 2000],
+    default_duration: 1000,
+    randomize_duration: false,
+  },
+};
+try {
+  taskSettings = _.merge(
+    // Honeycomb's default task settings
+    taskSettings,
+    // Override default task settings with settings from the config file
+    require("./config.json")
+  );
+} catch {
+  // Try will fail if require doesn't find the json file
+  console.warn("Unable to load task settings from config.json");
+}
+
+/** Export the settings so they can be used anywhere in the app */
+export {
+  //audioCodes,
+  config,
+  // eventCodes,
+  //language,
+  defaultBlockSettings,
+  taskName,
+  taskSettings,
+  taskVersion,
+  turkUniqueId,
+  keys,
 };
