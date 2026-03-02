@@ -1,3 +1,6 @@
+const { app } = require("firebase-admin");
+const { format } = require("prettier");
+
 /**
  * Configuration file for Electron Forge
  */
@@ -5,6 +8,8 @@ module.exports = {
   packagerConfig: {
     asar: true,
     icon: "assets/icons/icon",
+    name: "omst_honeycomb_update",
+    appBundleId: "com.uci.omst_honeycomb_update",
   },
   makers: [
     {
@@ -24,8 +29,9 @@ module.exports = {
       // Mac Distribution
       name: "@electron-forge/maker-dmg",
       config: {
-        icon: "assets/icons/icon.icns",
-        overwrite: true,
+        options: {
+          icon: "assets/icons/icon.icns",
+        },
       },
     },
     {
