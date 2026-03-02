@@ -2,16 +2,16 @@
   font-size: 1.6em;
 }
 
-.instructions .image-btn-text.kr text,
-.instructions .image-btn-text.ru text {
+.instructions .image-btn-text.Korean text,
+.instructions .image-btn-text.Russian text {
   font-size: 0.9em;
 }
-.instructions .image-btn-text.kr .text-stroke,
-.instructions .image-btn-text.ru .text-stroke {
+.instructions .image-btn-text.Korean .text-stroke,
+.instructions .image-btn-text.Russian .text-stroke {
   stroke-width: 8;
 }
 
-.instructions .image-btn-text.nl text {
+.instructions .image-btn-text.Dutch text {
   font-size: 0.9em;
 }
 

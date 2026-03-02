@@ -37,7 +37,14 @@ import jsPsychPreload from "@jspsych/plugin-preload";
 import $ from "jquery";
 
 //import { resp_mode } from '../trials/selectRespType';
-import { twochoice, selfpaced, lang, resp_mode, classic_graphics } from "../App/components/Login";
+import {
+  twochoice,
+  selfpaced,
+  lang,
+  resp_mode,
+  classic_graphics,
+  language,
+} from "../App/components/Login";
 import {
   setupButtonListeners,
   cleanupButtonListeners,
@@ -656,7 +663,7 @@ export function buttonContTrial(config, options) {
         <div class="image-btn-wrapper">
           <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text x="50%" y="50%">${txt}</text>
           </svg>
         </div>
@@ -667,7 +674,7 @@ export function buttonContTrial(config, options) {
         <div class="image-btn-wrapper">
           <input type="image" src="./assets/blank_${["red", "green", "blue"][i]}.png"
                 class="image-btn">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">${txt}</text>
             <text class="text-fill" x="50%" y="50%">${txt}</text>
           </svg>
