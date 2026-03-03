@@ -4,17 +4,16 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import "bootstrap/dist/css/bootstrap.css";
 import "./App.css";
 
+import { config, taskVersion, turkUniqueId } from "../config/main";
+import { getProlificId } from "../lib/utils";
 import JsPsychExperiment from "./components/JsPsychExperiment";
 import { Login } from "./components/Login";
 
-import { config, taskVersion, turkUniqueId } from "../config/main";
-import { addToFirebase, validateParticipant } from "./deployments/firebase";
-import { getProlificId } from "../lib/utils";
 
 /**
  * The top-level React component for Honeycomb. App handles initiating the jsPsych component when the participant
  * successfully logs in, and stores the overall state of the experiment. Importantly, App keeps track of what the
- * experiment is running on (Electron, Firebase, PsiTurk, or MTurk).
+ * experiment is running on (Electron, PsiTurk, or MTurk).
  *
  * Note that App is a functional component, which means it uses React callbacks rather than class methods. Learn more
  * about functional vs. class components here: https://reactjs.org/docs/components-and-props.html. It is recommended
@@ -35,7 +34,7 @@ function App() {
   const [participantID, setParticipantID] = useState("");
   const [studyID, setStudyID] = useState("");
 
-  // Manage the method type being used ("desktop", "firebase", "mturk", or "default")
+  // Manage the method type being used ("desktop", "mturk", or "default")
   const [currentMethod, setMethod] = useState("default");
 
   /**
@@ -64,54 +63,25 @@ function App() {
       // If MTURK
       if (config.USE_MTURK) {
         /* eslint-disable */
-        window.lodash = _.noConflict()
-        setPsiturk(new PsiTurk(turkUniqueId, '/complete'))
-        setMethod('mturk')
+        window.lodash = _.noConflict();
+        setPsiturk(new PsiTurk(turkUniqueId, "/complete"));
+        setMethod("mturk");
         // TODO 145: Function signature
-        handleLogin('mturk', turkUniqueId)
+        handleLogin("mturk", turkUniqueId);
         /* eslint-enable */
-      } else if (config.USE_PROLIFIC) {
-        const pID = getProlificId();
-        if (config.USE_FIREBASE && pID) {
-          setMethod("firebase");
-          // TODO 145: Function signature
-          handleLogin("prolific", pID);
-        } else {
-          // Error - Prolific must be used with Firebase
-          setIsError(true);
-        }
-      } else if (config.USE_FIREBASE) {
-        // Fill in login fields based on query parameters (may still be blank)
-        const query = new URLSearchParams(window.location.search);
-        const participantId = query.get("participantID");
-        const studyId = query.get("studyID");
-        if (participantId) setParticipantID(participantId);
-        if (studyId) setStudyID(studyId);
-
-        setMethod("firebase");
-      } else {
-        setMethod("default");
       }
     }
-    // eslint-disable-next-line
-  }, [])
+     
+  }, []);
 
   /** VALIDATION FUNCTIONS */
 
   // Default to valid
   const defaultValidation = async () => true;
-  // Validate participant/study against Firestore rules
-  const firebaseValidation = (participantId, studyId) => {
-    return validateParticipant(participantId, studyId);
-  };
 
   /** DATA WRITE FUNCTIONS */
 
   const defaultFunction = () => {};
-  // Add trial data to Firestore
-  const firebaseUpdateFunction = (data) => {
-    addToFirebase(data);
-  };
   // Execute the 'data' callback function (see public/electron.js)
   const desktopUpdateFunction = (data) => {
     ipcRenderer.send("data", data);
@@ -167,7 +137,6 @@ function App() {
             dataUpdateFunction={
               {
                 desktop: desktopUpdateFunction,
-                firebase: firebaseUpdateFunction,
                 mturk: psiturkUpdateFunction,
                 default: defaultFunction,
               }[currentMethod]
@@ -176,7 +145,6 @@ function App() {
               {
                 desktop: desktopFinishFunction,
                 mturk: psiturkFinishFunction,
-                firebase: defaultFunction,
                 default: defaultFinishFunction,
               }[currentMethod]
             }
@@ -187,7 +155,6 @@ function App() {
               {
                 desktop: defaultValidation,
                 default: defaultValidation,
-                firebase: firebaseValidation,
               }[currentMethod]
             }
             initialParticipantID={participantID}

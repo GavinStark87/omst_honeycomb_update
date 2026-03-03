@@ -21,9 +21,9 @@
 
 import { initJsPsych } from "jspsych";
 import { init } from "@brown-ccv/behavioral-task-trials";
+import _ from "lodash";
 import { getProlificId } from "../lib/utils";
 import packageInfo from "../../package.json";
-import _ from "lodash";
 
 //----------------------- 2 ----------------------
 //--------------- HONEYCOMB CONFIGS --------------
@@ -62,7 +62,6 @@ try {
 }
 
 const USE_PROLIFIC = (getProlificId() && !USE_MTURK) || false; // Whether or not the experiment is running with Prolific
-const USE_FIREBASE = process.env.REACT_APP_FIREBASE === "true"; // Whether or not the experiment is running in Firebase (web app)
 
 const USE_VOLUME = process.env.REACT_APP_VOLUME === "true"; // whether or not to ask the participant to adjust the volume
 const USE_CAMERA = process.env.REACT_APP_VIDEO === "true" && USE_ELECTRON; // whether or not to enable video
@@ -90,7 +89,6 @@ const config = init({
   USE_VOLUME,
   USE_CAMERA,
   USE_PROLIFIC,
-  USE_FIREBASE,
 });
 
 //----------------------- 3 ----------------------

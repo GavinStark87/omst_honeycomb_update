@@ -35,12 +35,11 @@ import React, { useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 
 import { config } from "../../config/main";
-import { initParticipant } from "../deployments/firebase";
 import { buildTimeline, jsPsychOptions } from "../../timelines/main";
 import { dataCalcFunction } from "../../trials/contOmst";
 import { pconDataCalcFunction } from "../../trials/pcon_demos";
 import { getFormattedDate } from "../../lib/utils";
-import { include_pcon , include_pairwise } from "./Login";
+import { include_pcon, include_pairwise } from "./Login";
 
 //----------------------- 2 ----------------------
 //-------------------- JSPSYCH -------------------
@@ -90,9 +89,6 @@ function JsPsychExperiment({
     // Start date of the experiment - used as the UID
     // TODO 169: JsPsych has a built in timestamp function
     const startDate = new Date().toISOString();
-
-    // Write the initial record to Firestore
-    if (config.USE_FIREBASE) initParticipant(participantId, studyId, startDate);
 
     const jsPsych = initJsPsych(combinedOptions);
     // Add experiment properties into jsPsych directly

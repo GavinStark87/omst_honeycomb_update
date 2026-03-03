@@ -39,7 +39,6 @@ export default [
       ".env",
       ".DS_Store",
       ".gitignore",
-      "**/firebase-service-account.json",
     ],
   },
 
