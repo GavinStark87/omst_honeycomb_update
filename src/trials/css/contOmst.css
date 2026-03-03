@@ -2,15 +2,13 @@
   font-size: 1.5em;
 }
 
-.cont-omst .image-btn-text.kr text,
-.cont-omst .image-btn-text.ru text {
-  font-size: 0.9em;
+.cont-omst .image-btn-text.Korean text {
+  font-size: 1.1em;
+}
+.cont-omst .image-btn-text.Russian text {
+  font-size: 1.1em;
 }
 .cont-omst .image-btn-text.Korean .text-stroke,
 .cont-omst .image-btn-text.Russian .text-stroke {
   stroke-width: 8;
-}
-
-.cont-omst .image-btn-text.Dutch text {
-  font-size: 0.9em;
 }

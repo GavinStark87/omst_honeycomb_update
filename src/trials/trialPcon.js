@@ -30,7 +30,7 @@ import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-respo
 import $ from "jquery";
 
 //import { resp_mode } from '../trials/selectRespType';
-import { lang, resp_mode, classic_graphics } from "../App/components/Login";
+import { lang, resp_mode, classic_graphics, language } from "../App/components/Login";
 import {
   getDeviceType,
   roundRect,
@@ -332,7 +332,7 @@ export function buttonPconTrial(config, options) {
           `<div class="image-btn-wrapper">
           <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text x="50%" y="50%">%choice%</text>
           </svg>
         </div>`,
@@ -340,7 +340,7 @@ export function buttonPconTrial(config, options) {
           `<div class="image-btn-wrapper">
           <input type="image" src="./assets/blank_button.png"
                 class="image-btn">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text x="50%" y="50%">%choice%</text>
           </svg>
         </div>`,
@@ -349,7 +349,7 @@ export function buttonPconTrial(config, options) {
           `<div class="image-btn-wrapper">
           <input type="image" src="./assets/blank_green.png"
                 class="image-btn">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>
             <text class="text-fill" x="50%" y="50%">%choice%</text>
           </svg>
@@ -358,7 +358,7 @@ export function buttonPconTrial(config, options) {
           `<div class="image-btn-wrapper">
           <input type="image" src="./assets/blank_blue.png"
                 class="image-btn">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>
             <text class="text-fill" x="50%" y="50%">%choice%</text>
           </svg>

@@ -60,7 +60,7 @@ import {
   roundRect,
   calculateSideBySideCanvasSize,
 } from "../lib/utils.js";
-import { lang, resp_mode, classic_graphics } from "../App/components/Login";
+import { lang, resp_mode, classic_graphics, language } from "../App/components/Login";
 import { jsPsychCategorizeImageButtons } from "./uniquePlugins/plugin-categorize-image-buttons.js";
 
 import "./css/instructions.css";
@@ -328,7 +328,7 @@ function makeCategorizeTrial(
                 class="image-btn"
                 data-choice="${i}"
                 data-correct="${i === buttonAnswer}">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text x="50%" y="50%">%choice%</text>
           </svg>
         </div>
@@ -342,7 +342,7 @@ function makeCategorizeTrial(
                 class="image-btn"
                 data-choice="${i}"
                 data-correct="${i === buttonAnswer}">
-          <svg class="image-btn-text ${lang}" viewBox="0 0 266 160">
+          <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">%choice%</text>
             <text class="text-fill" x="50%" y="50%">%choice%</text>
           </svg>
@@ -510,7 +510,7 @@ function makeCategorizeTrial(
       choices: "NO_KEYS",
       prompt: `
         <div class="prompt-container">
-          <p class="prompt prompt_text ${lang}" style="font-weight: normal;">${promptText}</p>
+          <p class="prompt prompt_text" style="font-weight: normal;">${promptText}</p>
         </div>
       `,
 
@@ -535,7 +535,7 @@ function makeCategorizeTrial(
           const promptContainer = document.querySelector(".prompt-container");
           if (!promptContainer) return;
 
-          promptContainer.innerHTML = `<p class="prompt prompt_text ${lang}" style="font-weight: normal; color: ${correct ? "green" : "red"};">${text}</p>`;
+          promptContainer.innerHTML = `<p class="prompt prompt_text" style="font-weight: normal; color: ${correct ? "green" : "red"};">${text}</p>`;
 
           // FIT THE TEXT
           requestAnimationFrame(() => {
