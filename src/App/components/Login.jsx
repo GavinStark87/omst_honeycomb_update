@@ -187,6 +187,8 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
       lang = require("../../language/omst_cn.json");
     } else if (chooseLang == "Russian") {
       lang = require("../../language/omst_ru.json");
+    } else if (chooseLang == "Dutch") {
+      lang = require("../../language/omst_nl.json");
     } else {
       lang = require("../../language/omst_en.json");
     }
@@ -394,6 +396,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
                         <option value="Korean">한국인</option>
                         <option value="Chinese">中文</option>
                         <option value="Russian">Pyccкий</option>
+                        <option value="Dutch">Nederlands</option>
                       </Form.Control>
                     </Form.Group>
                   </div>

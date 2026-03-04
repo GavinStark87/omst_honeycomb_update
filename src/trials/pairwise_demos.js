@@ -21,7 +21,7 @@ import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-respo
 import jsPsychCanvasButtonResponse from "@jspsych/plugin-canvas-button-response";
 import jsPsychPreload from "@jspsych/plugin-preload";
 
-import { lang, resp_mode, classic_graphics } from "../App/components/Login";
+import { lang, resp_mode, classic_graphics, language } from "../App/components/Login";
 import {
   images,
   invNormcdf,
