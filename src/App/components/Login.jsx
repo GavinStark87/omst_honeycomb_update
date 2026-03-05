@@ -51,6 +51,7 @@ import Form from "react-bootstrap/Form";
 
 import PropTypes from "prop-types";
 
+import { set } from "lodash";
 import { deepCopy, getFormattedDate } from "../../lib/utils";
 
 import { writeOrderfile, loadOrderfile } from "../../config/cont";
@@ -125,6 +126,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     const storedSublist = localStorage.getItem(`${studyId}_sublist`);
     const storedRespmode = localStorage.getItem(`${studyId}_respmode`);
     const storedLang = localStorage.getItem(`${studyId}_lang`);
+    const storedClassicGraphics = localStorage.getItem(`${studyId}_classicGraphics`);
     const storedTwochoice = localStorage.getItem(`${studyId}_twochoice`);
     const storedSelfpaced = localStorage.getItem(`${studyId}_selfpaced`);
     const storedConsent = localStorage.getItem(`${studyId}_consent`);
@@ -139,6 +141,7 @@ function Login({ handleLogin, initialParticipantID, initialStudyID, validationFu
     setSublist(storedSublist || "1");
     setRespmode(storedRespmode || "button");
     setLang(storedLang || "English");
+    setClassicGraphics(storedClassicGraphics === "true");
     setTwochoice(storedTwochoice == "true");
     setSelfpaced(storedSelfpaced == "true");
     setConsent(storedConsent == "true");
