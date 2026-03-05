@@ -8,6 +8,11 @@
 .cont-omst .image-btn-text.Russian text {
   font-size: 1.1em;
 }
+
+.classic .cont-omst .image-btn-text.Russian text,
+.classic .cont-omst .image-btn-text.Korean text {
+  font-size: 1.1em;
+}
 .cont-omst .image-btn-text.Korean .text-stroke,
 .cont-omst .image-btn-text.Russian .text-stroke {
   stroke-width: 8;

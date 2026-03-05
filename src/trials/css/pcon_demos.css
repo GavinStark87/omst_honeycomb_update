@@ -14,6 +14,12 @@
   font-size: 1em;
 }
 
+.classic .pcon-demos .image-btn-text.Dutch text,
+.classic .pcon-demos .image-btn-text.Russian text,
+.classic .pcon-demos .image-btn-text.Korean text {
+  font-size: 1.5em;
+}
+
 .smallScreen.pcon-demos .jspsych-categorize-image-buttons-stimulus {
   width: 30vw;
 }

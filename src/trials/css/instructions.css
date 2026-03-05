@@ -15,6 +15,12 @@
   font-size: 0.9em;
 }
 
+.classic .instructions .image-btn-text.Dutch text,
+.classic .instructions .image-btn-text.Russian text,
+.classic .instructions .image-btn-text.Korean text {
+  font-size: 1.5em;
+}
+
 .jspsych-content.instructions {
   height: 100svh;
   width: 100svw;
