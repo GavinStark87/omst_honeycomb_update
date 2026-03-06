@@ -237,6 +237,7 @@ ipc.on("data", (event, args) => {
       "Set.Subset: " + `${args.login_data.stimset}.${args.login_data.sublist}` + "\n"
     );
     stream_csv.write("Language: " + args.login_data.language + "\n");
+    stream_csv.write("Modern Graphics: " + args.login_data.classicGraphics + "\n");
     stream_csv.write("Consent included: " + args.login_data.include_consent + "\n");
     stream_csv.write("Demographics included: " + args.login_data.include_demog + "\n");
     stream_csv.write("Perceptual control included: " + args.login_data.include_pcon + "\n");

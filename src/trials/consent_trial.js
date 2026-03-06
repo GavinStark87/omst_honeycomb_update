@@ -74,7 +74,7 @@ console.log("smallScreen " + smallScreen);
 var consentGiven = null;
 
 function createConsentTrial() {
-  const classicGraphics = classic_graphics;
+  const classicGraphics = JSON.parse(classic_graphics); // convert string to boolean
   return {
     type: jsPsychHtmlButtonResponse,
     stimulus: irb_stim,

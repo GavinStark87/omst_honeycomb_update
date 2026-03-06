@@ -60,13 +60,12 @@ function assignVars() {
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;
   canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
-  console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
-  console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
-  classicGraphics = classic_graphics;
+  classicGraphics = JSON.parse(classic_graphics);
   if (classicGraphics) {
     document.body.classList.add("classic");
+  } else {
+    document.body.classList.remove("classic");
   }
-  console.log("classicGraphics " + classicGraphics);
 }
 
 //----------------------- 4 ----------------------

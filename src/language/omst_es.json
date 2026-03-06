@@ -67,7 +67,7 @@
     "instr1_stim_sd": "En esta tarea, verás dos objetos aparecer en la pantalla, uno después del otro, con un poco de \"estática\" durante unos segundos entre ellos. Tu trabajo es determinar si las dos imágenes son <i>exactamente iguales</i> o no.",
     "instr1_stim": "En esta prueba, verá aparecer dos objetos en la pantalla, uno a uno, con un poco de \"estática\" durante unos segundos entre ellos. Su trabajo es determinar si las dos imágenes son <i>exactamente iguales</i> or similar.",
     "instr2_stim": "Aquí están las imágenes de nuevo. Debería haber dicho <b>Iguales</b> para estas porque eran las mismas imágenes.",
-    "instr3_stim": "Aquí están las imágenes de nuevo. Debería haber dicho <b>Similar</b> para estas porque no eran exactamente iguales</p>",
+    "instr3_stim": "Aquí están las imágenes de nuevo. Debería haber dicho <b>Similar</b> para estas porque no eran exactamente iguales",
     "instr3_stim_sd": "Aquí están esas imágenes de nuevo. Deberías haber dicho <b>Diferente</b> para esa, ya que no eran exactamente iguales.",
     "ready": "Prepárese...",
     "wait": "Espere...",

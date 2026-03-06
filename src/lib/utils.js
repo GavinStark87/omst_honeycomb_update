@@ -436,23 +436,16 @@ function getDeviceType() {
   const laptop = [false, false, true];
   const desktop = [false, false, false];
 
-  console.log("width: " + width);
-  console.log("height: " + height);
-  console.log("aspect ratio: " + aspectRatio.toFixed(2));
-
   if (screenSize >= 1920) {
-    console.log("desktop");
     return desktop;
   }
 
   // Laptop range (typically 13-15 inch displays)
   if (screenSize < 1920) {
-    console.log("laptop");
     return laptop;
   }
 
   // Fallback
-  console.log("desktop");
   return desktop;
 }
 
@@ -767,14 +760,14 @@ function fitTextToContainer(element, maxHeight, minSize = 12, maxSize = 48) {
     }
   }
 
-  element.style.fontSize = bestFit + "px";
+  element.style.fontSize = bestFit - 1 + "px";
   console.log(`  Final: ${bestFit}px after ${iterations} iterations`);
 
   element.style.height = originalStyles.height;
   element.style.overflow = originalStyles.overflow;
   element.style.transition = originalStyles.transition;
   element.style.visibility = originalStyles.visibility;
-  console.log(`Shrinked best fit to ${bestFit}`);
+  console.log(`Shrinked best fit to ${bestFit - 1}`);
   return bestFit;
 }
 
