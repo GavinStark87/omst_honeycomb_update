@@ -34,7 +34,7 @@ import { setupButtonListeners, cleanupButtonListeners } from "../lib/utils";
 //      '</b> <input name="fullname" type="text" required /></p> \
 //      <p> <b>' +
 function createDemogForm() {
-  const classicGraphics = classic_graphics;
+  const classicGraphics = JSON.parse(classic_graphics);
 
   return {
     type: jsPsychSurveyHtmlForm,
