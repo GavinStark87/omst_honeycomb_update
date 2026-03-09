@@ -295,6 +295,7 @@ function refresh_cont_trials() {
       const container = document.querySelector(".jspsych-content");
       if (container) {
         container.classList.add("cont-omst");
+        container.classList.add("ready");
         container.classList.remove("pcon-demos");
         container.classList.remove("instructions");
       }

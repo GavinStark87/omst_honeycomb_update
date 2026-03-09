@@ -177,7 +177,7 @@
       },
       "twochoice": {
         "instr_stim": "Tarea Continua de <i>Viejo</i> o <i>Nuevo</i>",
-        "trial_prompt": "¿Ya ha visto esto antes? ¿Es <i>Viejo</i> o <i>Nuevo/i>?",
+        "trial_prompt": "¿Ya ha visto esto antes? ¿Es <i>Viejo</i> o <i>Nuevo</i>?",
         "trial_choices": {
           "old": "Viejo",
           "new": "Nuevo"

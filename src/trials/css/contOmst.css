@@ -17,3 +17,11 @@
 .cont-omst .image-btn-text.Russian .text-stroke {
   stroke-width: 8;
 }
+
+.jspsych-content.cont-omst:not(.ready) {
+  visibility: hidden !important;
+}
+
+.jspsych-content.ready.cont-omst {
+  visibility: visible !important;
+}

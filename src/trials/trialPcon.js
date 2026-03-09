@@ -70,7 +70,7 @@ function assignVars() {
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;
-  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  canvasHeight = smallScreen ? window.innerHeight * 0.7 : window.innerHeight * 0.7;
   classicGraphics = JSON.parse(classic_graphics);
   if (classicGraphics) {
     document.body.classList.add("classic");
