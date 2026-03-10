@@ -10,6 +10,7 @@
 //                       template
 //        8/11/23 (AGH): changed trial_txt to trial_text for consistency
 //        2/11/26 (GES): Modernized assets
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //   This file contains the default options for the two variable

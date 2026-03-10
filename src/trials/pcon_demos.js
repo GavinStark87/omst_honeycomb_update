@@ -12,6 +12,7 @@
 //                       modified side by side display stimuli
 //                       (instr2_stim and instr3_stim)
 //        8/11/23 (AGH): changed trial_txt to trial_text for consistency
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //   This file includes the instruction and demo trials of the perceptual
@@ -218,7 +219,7 @@ function assignVars() {
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;
-  canvasHeight = smallScreen ? window.innerHeight * 0.75 : window.innerHeight * 0.7;
+  canvasHeight = smallScreen ? window.innerHeight * 0.7 : window.innerHeight * 0.7;
   console.log("Canvas width: " + canvasWidth + ", Canvas height: " + canvasHeight);
   console.log("Window width: " + window.innerWidth + ", Window height: " + window.innerHeight);
   classicGraphics = JSON.parse(classic_graphics);

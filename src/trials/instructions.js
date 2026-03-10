@@ -27,6 +27,7 @@
 //        8/1/23  (AGH): modified side-by-side stimuli and prompts for better
 //                       formatting; CategorizeMultipleImage(Keyboard/Buttons)
 //                       no longer necessary
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //   These trials are the instruction trials that explain to the

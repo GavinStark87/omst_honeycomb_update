@@ -17,6 +17,7 @@
 //                       deleted cursor block for button trial
 //        7/27/23 (AGH): added paragraph markers to param functions (previously
 //                       within text file)
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //

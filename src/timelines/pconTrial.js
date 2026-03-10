@@ -8,6 +8,7 @@
 //   Changes:
 //        7/31/23 (AGH): initial conversion from pcon.html
 //        8/1/23  (AGH): added wait method to allow formatting
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //   This file sets up an iteration of the pcon test timeline

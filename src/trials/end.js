@@ -9,6 +9,7 @@
 //        7/10/23 (AGH): initial code converted from end.html
 //        7/13/23 (AGH): added task data property
 //        10/29/23 (CELS): Lets this actually end after 1s
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //   This trial displayed the end thank you message at the conclusion

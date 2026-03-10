@@ -12,6 +12,7 @@
 //        6/30/23 (AGH): added selector ids and custom formatting
 //                       in App.css
 //        7/13/23 (AGH): added task data property to include task name
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //   This trial displays the demographics survey

@@ -12,6 +12,7 @@
 //        7/7/23 (AGH):  created not_consented for conditional timeline
 //        7/13/23 (AGH): added task data property to trials
 //        7/14/23 (AGH): added margin-vertical parameter to space buttons
+//        3/10/26 (GES): updated to allow modern graphics
 //
 //   --------------------
 //   This file creates a consent trial that displays a formatted
