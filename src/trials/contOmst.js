@@ -57,7 +57,7 @@ import {
   cleanupButtonListeners,
   getDeviceType,
   drawHTMLText,
-  images,
+  preloadPressedImages,
 } from "../lib/utils";
 
 // <script>
@@ -159,6 +159,7 @@ var omst_preload = {
   continue_after_error: true,
   auto_preload: true,
   on_load: function () {
+    preloadPressedImages();
     const container = document.querySelector(".jspsych-content");
     if (container) {
       container.classList.add("cont-omst");
@@ -216,6 +217,7 @@ let canvasHeight = {};
 let classicGraphics = {};
 
 function assignVars() {
+  preloadPressedImages();
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;

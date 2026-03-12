@@ -31,12 +31,14 @@ import jsPsychCanvasKeyboardResponse from "@jspsych/plugin-canvas-keyboard-respo
 import $ from "jquery";
 
 //import { resp_mode } from '../trials/selectRespType';
+import { preload } from "react-dom";
 import { lang, resp_mode, classic_graphics, language } from "../App/components/Login";
 import {
   getDeviceType,
   roundRect,
   setupButtonListeners,
   cleanupButtonListeners,
+  preloadPressedImages,
 } from "../lib/utils";
 
 //----------------------- 2 ----------------------
@@ -68,6 +70,7 @@ let canvasHeight = {};
 let classicGraphics = {};
 
 function assignVars() {
+  preloadPressedImages();
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;

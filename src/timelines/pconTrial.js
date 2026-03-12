@@ -26,7 +26,7 @@ import jsPsychHtmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response"
 import jsPsychAnimation from "@jspsych/plugin-animation";
 
 import { config } from "../config/main";
-import { images, getDeviceType } from "../lib/utils";
+import { images, getDeviceType, preloadPressedImages } from "../lib/utils";
 
 import { lang, resp_mode, classic_graphics } from "../App/components/Login";
 
@@ -57,6 +57,7 @@ let canvasHeight = {};
 let classicGraphics = {};
 
 function assignVars() {
+  preloadPressedImages();
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;

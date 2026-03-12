@@ -52,6 +52,7 @@ import {
   getDeviceType,
   drawHTMLText,
   roundRect,
+  preloadPressedImages,
 } from "../lib/utils";
 
 //----------------------- 2 ----------------------
@@ -113,6 +114,7 @@ let canvasHeight = {};
 let classicGraphics = {};
 
 function assignVars() {
+  preloadPressedImages();
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;
@@ -159,6 +161,9 @@ var preload = {
   show_progress_bar: true,
   show_detailed_erros: true,
   continue_after_error: true,
+  on_load: function () {
+    preloadPressedImages();
+  },
   on_error: function (fname) {
     console.log("FAILED  " + fname);
   },

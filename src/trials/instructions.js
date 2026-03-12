@@ -60,6 +60,7 @@ import {
   fitTextToContainer,
   roundRect,
   calculateSideBySideCanvasSize,
+  preloadPressedImages,
 } from "../lib/utils.js";
 import { lang, resp_mode, classic_graphics, language } from "../App/components/Login";
 import { jsPsychCategorizeImageButtons } from "./uniquePlugins/plugin-categorize-image-buttons.js";
@@ -757,6 +758,7 @@ let canvasHeight = {};
 let classicGraphics = {};
 
 function assignVars() {
+  preloadPressedImages();
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;

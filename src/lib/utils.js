@@ -301,6 +301,27 @@ let activeBtn = null;
 let lastTouchTime = 0;
 const hasHover = window.matchMedia("(hover: hover)").matches;
 
+// Declared at the top level — persists for the entire lifetime of the page
+const heldImages = {};
+
+function preloadPressedImages() {
+  const pressed = [
+    "./assets/blank_green_pressed.png",
+    "./assets/blank_red_pressed.png",
+    "./assets/blank_blue_pressed.png",
+  ];
+
+  for (let i = 0; i < pressed.length; i++) {
+    const pressedSrc = pressed[i];
+    // Only load if not already held
+    if (!heldImages[pressedSrc]) {
+      const img = new Image();
+      img.src = pressedSrc;
+      heldImages[pressedSrc] = img; // ← strong reference, prevents GC + eviction
+    }
+  }
+}
+
 function handlePress(e) {
   // First try to find wrapper from the target
   let wrapper = e.target.closest(".image-btn-wrapper");
@@ -1067,6 +1088,7 @@ export {
   set6Images,
   getFormattedDate,
   invNormcdf,
+  preloadPressedImages,
   setupButtonListeners,
   cleanupButtonListeners,
   getDeviceType,

@@ -32,9 +32,11 @@ import {
   roundRect,
   calculateSideBySideCanvasSize,
   getDeviceType,
+  preloadPressedImages,
 } from "../lib/utils";
 
 import "./css/pcon_demos.css";
+import { preload } from "react-dom";
 
 //----------------------- 2 ----------------------
 //----------------- HELPER METHODS ---------------
@@ -452,6 +454,7 @@ let canvasHeight = {};
 let classicGraphics = {};
 
 function assignVars() {
+  preloadPressedImages();
   device = getDeviceType();
   smallScreen = device[2];
   canvasWidth = window.innerWidth * 0.9;
