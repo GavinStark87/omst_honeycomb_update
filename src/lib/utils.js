@@ -305,14 +305,17 @@ const hasHover = window.matchMedia("(hover: hover)").matches;
 const heldImages = {};
 
 function preloadPressedImages() {
-  const pressed = [
+  const buttons = [
     "./assets/blank_green_pressed.png",
     "./assets/blank_red_pressed.png",
     "./assets/blank_blue_pressed.png",
+    "./assets/blank_green.png",
+    "./assets/blank_red.png",
+    "./assets/blank_blue.png",
   ];
 
-  for (let i = 0; i < pressed.length; i++) {
-    const pressedSrc = pressed[i];
+  for (let i = 0; i < buttons.length; i++) {
+    const pressedSrc = buttons[i];
     // Only load if not already held
     if (!heldImages[pressedSrc]) {
       const img = new Image();
