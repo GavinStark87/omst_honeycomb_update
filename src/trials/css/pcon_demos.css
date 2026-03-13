@@ -25,12 +25,12 @@
 }
 
 .pcon-demos #jspsych-animation-image {
-  width: 25vw;
+  width: 30vw;
   height: auto;
 }
 
 .smallScreen .pcon-demos #jspsych-animation-image {
-  width: 30vw;
+  width: 35vw;
 }
 
 .jspsych-content.pcon-demos {
