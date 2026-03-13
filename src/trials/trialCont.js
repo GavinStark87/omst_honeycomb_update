@@ -677,7 +677,7 @@ export function buttonContTrial(config, options) {
       : trialChoices().map(
           (txt, i) => `
         <div class="image-btn-wrapper">
-          <input type="image" src="./assets/blank_${["red", "green", "blue"][i]}.png"
+          <input type="image" src="./assets/blank_${twochoice ? ["red", "blue"][i] : ["red", "green", "blue"][i]}.png"
                 class="image-btn">
           <svg class="image-btn-text ${language}" viewBox="0 0 266 160">
             <text class="text-stroke" x="50%" y="50%">${txt}</text>
